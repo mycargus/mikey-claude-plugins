@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "mycargus-plugins",
+  "metadata": {
+    "description": "Michael Hargiss's personal Claude Code plugins"
+  },
+  "owner": {
+    "name": "Michael Hargiss"
+  },
+  "plugins": [
+    {
+      "name": "testify",
+      "source": "./testify",
+      "category": "development"
+    }
+  ]
+}

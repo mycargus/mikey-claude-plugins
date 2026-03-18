@@ -9,8 +9,8 @@
   },
   "plugins": [
     {
-      "name": "testify",
-      "source": "./testify",
+      "name": "mycargus",
+      "source": "./mycargus",
       "category": "development"
     }
   ]

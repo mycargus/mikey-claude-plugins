@@ -66,24 +66,9 @@ Review and align tests with embedded test philosophy. Identifies code design iss
    - Extract per-file summaries: coverage percentages, uncovered functions/lines/branches
    - If coverage data is unavailable, warn the user and fall back to inference-based analysis
 
-5. **Determine strategy**:
-   - **< 10 total files** (test + source): Analyze directly in this context
-   - **>= 10 total files**: Spawn a subagent for parallel analysis (see Phase 2B)
-
 ### Phase 2: Analysis
 
-#### Strategy A: Direct Analysis (fewer than 10 files)
-
-1. Read all test and source files
-2. Apply the Test Philosophy from Embedded References below
-3. Apply philosophy checks inline, including negative test coverage and edge case gap analysis
-4. If `--with-coverage`: incorporate coverage data
-5. If `--with-design`: classify functions as pure/I/O/orchestrator/violation
-6. Generate report
-
-#### Strategy B: Subagent Analysis (10+ files)
-
-Spawn an `Explore` subagent for context isolation (keeps large file analysis out of the parent context window). The spawn prompt must begin with the complete Test Philosophy from Embedded References (copy verbatim), followed by the Analysis Instructions from Embedded References. Pass the following context:
+Spawn an `analysis-agent` subagent for context isolation. The spawn prompt must begin with the complete Test Philosophy from Embedded References (copy verbatim), followed by the Analysis Instructions from Embedded References. Pass the following context:
 
 - **Test files**: absolute file paths, one per line, prefixed with `- `
 - **Source files**: absolute file paths, one per line, prefixed with `- `
@@ -203,7 +188,7 @@ If the full test suite fails after implementation, offer:
 - Negative test gap analysis runs every time (not behind a flag) because untested validations are a fundamental quality concern
 - The target path can be a test directory OR a source directory — infer the counterpart accordingly
 - When `--export` is set, generate `testify-report-<timestamp>.md` using `date +%Y%m%d-%H%M%S`
-- For 10+ files, use subagent mode for efficiency
+- Analysis always runs in a subagent for context isolation
 
 ---
 
@@ -374,7 +359,7 @@ If a project already uses RITEway assertions, evaluate compliance. If not, do no
 
 ### Analysis Instructions
 
-Use these instructions when spawning a subagent for large-scale test analysis (10+ files). The subagent prompt must begin with the complete Test Philosophy above (copy verbatim), followed by these instructions.
+Use these instructions when spawning the `analysis-agent` subagent. The subagent prompt must begin with the complete Test Philosophy above (copy verbatim), followed by these instructions.
 
 #### Expected Input
 

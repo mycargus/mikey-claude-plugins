@@ -151,7 +151,7 @@ If a project already uses RITEway assertions, evaluate compliance. If not, do no
 **Test files must not exceed 500 lines.** Longer test files cause context bloat and unnecessary maintenance burden.
 
 - When writing tests: split into multiple focused files before reaching 500 lines. Group by feature, behavior, or function under test.
-- When reviewing tests: flag any test file exceeding 500 lines as a HIGH-severity issue requiring a split.
+- When reviewing tests: flag any test file exceeding 500 lines as a MEDIUM-severity issue requiring a split.
 
 ## Test Coverage Guidelines
 

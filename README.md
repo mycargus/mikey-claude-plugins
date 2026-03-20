@@ -33,6 +33,30 @@ Open claude and type `/mikey:tdd` to see optional parameters.
 
 See [mikey/skills/tdd/SKILL.md](mikey/skills/tdd/SKILL.md) for more information.
 
+## Development
+
+### Local dev workflow
+
+1. **Uninstall** the marketplace version to avoid conflicts:
+   ```bash
+   claude plugin uninstall mikey@mikey-claude-plugins
+   ```
+
+2. **Load the local version** inline when starting Claude Code:
+   ```bash
+   claude --plugin-dir /path/to/mikey-claude-plugins/mikey
+   ```
+
+3. **Iterate** — edit skill/agent/hook files, then reload within the session:
+   ```
+   /reload-plugins
+   ```
+
+4. **Reinstall** from the marketplace when done:
+   ```bash
+   claude plugin install mikey@mikey-claude-plugins
+   ```
+
 ## Releasing
 
 1. Update `plugin.json` version

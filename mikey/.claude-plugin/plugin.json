@@ -1,6 +1,6 @@
 {
   "name": "mikey",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Michael Hargiss's Claude Code plugin collection. Test philosophy alignment (/mikey:testify) and spec-driven TDD workflows (/mikey:tdd).",
   "author": {
     "name": "Michael Hargiss"

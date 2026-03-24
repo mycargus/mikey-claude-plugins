@@ -19,7 +19,7 @@ claude plugin install mikey@mikey-claude-plugins
 
 ### /mikey:testify
 
-Review and align tests with test philosophy. Identifies code design issues, implementation detail testing, excessive mocking, and negative test coverage gaps — then suggests or implements improvements.
+Review and align tests with test philosophy. Identifies code design issues, implementation detail testing, excessive mocking, and negative test coverage gaps — then suggests improvements. Use `--plan` to generate a saved implementation plan without bloating the current context.
 
 Open claude and type `/mikey:testify` to see optional parameters.
 

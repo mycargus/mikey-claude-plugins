@@ -78,3 +78,4 @@ Show actual test output (not summaries). Show actual code written. Never fabrica
 - If the spec is ambiguous: make a reasonable interpretation, note the assumption, continue.
 - If a test fails unexpectedly during GREEN: debug and fix the implementation (not the test).
 - Never skip a failing test, write implementation before the test, add features not in the current scenario, or mock pure functions.
+- **Never use `node -e`, `node --eval`, `python -c`, or any ephemeral inline code execution** to test or verify behavior. Always write code to files and run tests from files. Ad-hoc eval commands produce throwaway results that aren't captured in the test suite and violate the TDD discipline of having all verification in committed test files.

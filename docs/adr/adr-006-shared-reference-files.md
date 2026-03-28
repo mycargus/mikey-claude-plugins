@@ -22,7 +22,7 @@ Option B -- the test philosophy lives in `skills/testify/references/philosophy.m
 **Positive:**
 - Single source of truth -- philosophy updates propagate to all consumers automatically.
 - Analysis-prompt contract (`analysis-prompt.md`) and report template (`report-template.md`) follow the same pattern, creating a consistent reference file convention.
-- PreToolUse hook auto-allows reads to plugin files, so the runtime file access adds no UX friction.
+- PreToolUse hook auto-allows reads to plugin files, so the runtime file access adds no UX friction. (See [ADR-008](adr-008-no-jq-in-hooks.md) for a gotcha with hook script dependencies.)
 
 **Negative:**
 - Consumers are not self-contained -- understanding the analysis-agent requires reading both the agent file and the referenced philosophy file.

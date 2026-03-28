@@ -1,7 +1,7 @@
 ---
 name: mikey:tdd
 description: "TDD workflow driven by Given/When/Then specifications. Provide a spec file or folder path for autonomous batch processing, or run without a path for an interactive TDD loop. Implements code using Functional Core / Imperative Shell design principles."
-argument-hint: [path] [--plan] [--validate] [--export]
+argument-hint: [path] [--plan] [--export]
 user-invocable: true
 ---
 
@@ -13,7 +13,6 @@ user-invocable: true
 |-----------|-------------|
 | `path` | File or folder containing Given/When/Then specs (triggers agent mode) |
 | `--plan` | Show implementation plan only, do not write code |
-| `--validate` | Run `/testify` after completion (default: auto-detect — true if testify installed, false otherwise) |
 | `--export` | Save session report to `sdd-report-<timestamp>.md` |
 
 ## Description
@@ -40,7 +39,6 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
 1. **Parse arguments** to extract:
    - Target path (optional — file or folder of spec files)
    - `--plan` flag (plan only, do not implement)
-   - `--validate` flag (run testify after completion)
    - `--export` flag (save report)
 
 2. **Detect project conventions** by examining project files:
@@ -50,24 +48,19 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
    - **Directory structure**: Identify where tests and source files live
    - **Existing test style**: Read 1-2 existing test files to match conventions (assertion library, naming, structure)
 
-3. **Detect testify availability**:
-   - Testify is a sibling skill in this plugin and is always co-installed with tdd
-   - If `--validate` was not explicitly set: default to `true`
-   - If `--validate` was explicitly set to `false`: respect the flag
-
-4. **Display setup summary** to the user before proceeding:
+3. **Display setup summary** to the user before proceeding:
    ```
    Phase 1: Setup
    - Target: {path or "interactive mode"}
    - Project: {language}, {test pattern} convention
-   - Flags: {enabled flags}
+   - Flags: {enabled flags or "none"}
    - Test runner: {detected runner}
    - Test directory: {path or "TBD"}
    - Source directory: {path or "TBD"}
    ```
    In interactive mode or when directories can't be determined yet, show what's known and note the rest as "TBD — will determine from first scenario."
 
-5. **Route to mode**:
+4. **Route to mode**:
    - If `path` is provided → **Agent Mode** (Phase 2A)
    - If no `path` → **Interactive Mode** (Phase 2B)
 
@@ -119,7 +112,6 @@ Spawn a `tdd-agent` with the following context:
    - Test directory
    - Existing test style conventions (assertion library, naming, structure)
 2. **Scenarios**: The selected scenarios, formatted as numbered Given/When/Then blocks
-3. **Validate**: If validate is enabled, include "VALIDATE is enabled — run the VALIDATE step after each scenario's REFACTOR step. After all scenarios, the parent skill will invoke /mikey:testify for a final comprehensive review." If disabled, include "VALIDATE is disabled — skip the VALIDATE step between scenarios."
 
 Wait for agent completion.
 
@@ -127,8 +119,7 @@ Wait for agent completion.
 
 After the agent completes:
 1. Show final test suite results
-2. If `--validate` is true: invoke `/mikey:testify` on the test directory with `--with-design`
-3. If `--export`: write report (see Export section)
+2. If `--export`: write report (see Export section)
 
 ### Phase 2B: Interactive Mode (no spec path)
 
@@ -210,8 +201,7 @@ If "done": proceed to Post-Completion.
    - Scenarios implemented
    - Tests written (categorized: unit pure / unit mocked / integration)
    - Pure functions created, I/O shells, orchestrators
-3. If `--validate` is true: invoke `/mikey:testify` on the test directory with `--with-design`
-4. If `--export`: write report (see Export section)
+3. If `--export`: write report (see Export section)
 
 ## Export
 
@@ -239,7 +229,7 @@ When `--export` is set, write a session report to `sdd-report-<timestamp>.md` us
 - Orchestrators: {list with file:line}
 
 ## Verification
-{testify report summary or "not run"}
+{test suite output summary}
 ```
 
 ## Code Design Principles

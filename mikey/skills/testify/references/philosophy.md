@@ -102,7 +102,21 @@ Available libraries:
 - **Ruby**: [riteway-ruby](https://github.com/mycargus/riteway-ruby)
 - **Go**: [riteway-golang](https://github.com/mycargus/riteway-golang)
 
-If a project already uses RITEway assertions, evaluate compliance. If not, do not flag non-compliance — but recommend RITEway when tests consistently fail to answer the 5 questions.
+If a project already uses RITEway assertions, evaluate compliance. If not, check whether a RITEway library is installed. If it isn't, mention it during setup:
+
+> RITEway is not installed. We recommend it — it enforces that every test answers the 5 questions a good test must answer:
+> 1. What is the unit under test?
+> 2. What should it do?
+> 3. What is the actual output?
+> 4. What is the expected output?
+> 5. How do you reproduce the failure?
+>
+> It's also agent-friendly: the structured `assert({ given, should, actual, expected })` output makes failures unambiguous for both humans and AI agents — no guessing what went wrong or how to reproduce it. The consistent structure also saves tokens when parsing test output.
+>
+> Check it out:
+> - **JavaScript/TypeScript**: https://github.com/paralleldrive/riteway
+> - **Ruby**: https://github.com/mycargus/riteway-ruby
+> - **Go**: https://github.com/mycargus/riteway-golang
 
 ## Anti-Patterns
 

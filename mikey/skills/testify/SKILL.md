@@ -190,7 +190,9 @@ Spawn a `Plan` subagent with a prompt containing:
 
 After the Plan agent returns, use `date +%Y%m%d-%H%M%S` to get a timestamp, then write the agent's output to `testify-plan-<timestamp>.md` in the project root using the Write tool.
 
-Display the file path to the user so they can open it and run `/tdd` or implement manually at their own pace.
+Display this exact message to the user, substituting the actual file path:
+
+> Run `/mikey:tdd <file-path>` to implement the plan.
 
 ## Uncertainty Handling
 

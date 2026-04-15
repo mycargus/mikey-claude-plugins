@@ -29,7 +29,11 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
 3. Functional Core / Imperative Shell code design — pure logic separated from I/O
 4. Minimal implementation — only write code required by the current test
 
-**Philosophy reference:** `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/philosophy.md`
+**Shared references:**
+- `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md` — How to structure code for testability
+- `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md` — What makes tests reliable and valuable
+- `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md` — Which test layer each scenario belongs at
+
 **Spec format reference:** See Embedded References below.
 
 ## Execution Strategy
@@ -123,7 +127,7 @@ After the agent completes:
 
 ### Phase 2B: Interactive Mode (no spec path)
 
-Before starting the interactive loop, read the test philosophy from `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/philosophy.md` and apply those principles throughout.
+Before starting the interactive loop, read the shared references (`${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`, `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md`, `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`) and apply those principles throughout.
 
 #### Step 1: Prompt for Behavior
 
@@ -156,26 +160,25 @@ Use AskUserQuestion to get the user's input.
    - Follow RITE principles
    - Answer the 5 Questions
    - Match the project's existing test conventions
-3. Determine the right test type based on the scenario:
-   - If the behavior is pure logic (calculation, transformation, validation) → **unit test, no mocks**
-   - If the behavior involves I/O (file ops, network, CLI) → **integration test through real entry point**
+3. Determine the right test layer (see `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md` for full criteria):
+   - Pure logic with no I/O → **unit test**
+   - I/O or user-facing behavior → **interface test** (the default)
+   - Inter-service data format validation → **contract test**
+   - Requires real external services → **E2E test**
 4. Run the test suite — show the failure output
 5. Confirm the test is failing for the right reason
 
 #### Step 4: GREEN — Write Minimal Implementation
 
 1. Write the **minimum** code to make the test pass
-2. **Apply Functional Core / Imperative Shell**:
-   - Extract pure logic into pure functions (no I/O, deterministic)
-   - Keep I/O operations in thin shell functions
-   - If the scenario involves both logic and I/O, write them as separate functions
+2. **Apply Functional Core / Imperative Shell** (see `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`). If the scenario involves both logic and I/O, write them as separate functions.
 3. Do NOT add code beyond what the test requires
 4. Run the test suite — show all tests passing
 5. **Discipline check**: Verify every branch and guard clause in the new code is exercised by a test. If you added defensive code (null checks, input validation, error guards) that no test exercises, remove it — it violates minimal implementation. Re-run tests if you removed code.
 
 #### Step 5: REFACTOR
 
-1. **Classify** each function written or modified as Pure (no I/O, deterministic), I/O (reads/writes external systems), or Orchestrator (coordinates pure + I/O). Any function that mixes data transformation with I/O is a Violation — extract the pure logic into a separate function.
+1. **Classify** each function written or modified as Pure, I/O, or Orchestrator (see `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`). Any function that mixes data transformation with I/O is a Violation — extract the pure logic.
 2. **Review** for:
    - **Duplication** → extract if genuinely duplicated
    - **Naming clarity** → functions and variables express intent
@@ -199,7 +202,7 @@ If "done": proceed to Post-Completion.
 1. Run the full test suite and show output
 2. Summarize the session:
    - Scenarios implemented
-   - Tests written (categorized: unit pure / unit mocked / integration)
+   - Tests written (categorized: unit / unit mocked / interface)
    - Pure functions created, I/O shells, orchestrators
 3. If `--export`: write report (see Export section)
 
@@ -213,7 +216,7 @@ When `--export` is set, write a session report to `sdd-report-<timestamp>.md` us
 ## Session Summary
 - Mode: {Agent|Interactive}
 - Scenarios implemented: {count}
-- Total tests: {count} (unit pure: {N}, unit mocked: {N}, integration: {N})
+- Total tests: {count} (unit: {N}, unit mocked: {N}, interface: {N})
 
 ## Scenarios
 
@@ -232,15 +235,14 @@ When `--export` is set, write a session report to `sdd-report-<timestamp>.md` us
 {test suite output summary}
 ```
 
-## Code Design Principles
+## Non-Negotiable Principles
 
-**These principles are NOT optional.** Every implementation step must apply them:
+The shared references define these principles in full. They are **not optional**:
 
-1. **Functional Core / Imperative Shell** — Always separate pure logic from I/O
-2. **Pure functions** — No side effects, deterministic, easy to unit test without mocks
-3. **Thin I/O shells** — Handle only I/O (file, network, console), delegate logic to pure functions
-4. **Test what you build** — Pure functions get unit tests. I/O gets integration tests. Never mock pure functions.
-5. **Minimal implementation** — Only write code the current test demands. Do not anticipate future scenarios.
+- **Functional Core / Imperative Shell** — Always separate pure logic from I/O (`${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`)
+- **Test layer placement** — Interface tests are the default for I/O; unit tests for pure functions only (`${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`)
+- **Test quality** — RITE tests, observable behavior, never mock pure functions (`${CLAUDE_PLUGIN_ROOT}/references/test-quality.md`)
+- **Minimal implementation** — Only write code the current test demands. Do not anticipate future scenarios.
 
 ## Uncertainty Handling
 
@@ -263,7 +265,7 @@ When `--export` is set, write a session report to `sdd-report-<timestamp>.md` us
 
 ## Important Notes
 
-- Read and apply the test philosophy from `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/philosophy.md` before any analysis or implementation
+- Read and apply the shared references from `${CLAUDE_PLUGIN_ROOT}/references/` (code-testability.md, test-quality.md, test-pyramid.md) before any analysis or implementation
 - Apply the Spec Format from Embedded References when parsing spec files
 - The TDD cycle is strict: RED (failing test) → GREEN (minimal pass) → REFACTOR. Never skip steps.
 - Code design (functional core / imperative shell) is applied during GREEN and REFACTOR, not as a separate phase

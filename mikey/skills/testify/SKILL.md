@@ -36,7 +36,10 @@ Review and align tests with embedded test philosophy. Identifies code design iss
 5. Provides structured report with specific improvements
 6. Can optionally generate a saved implementation plan (via `--plan`)
 
-**Philosophy reference:** `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/philosophy.md`
+**Shared references:**
+- `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md` — How to structure code for testability
+- `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md` — What makes tests reliable and valuable
+- `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md` — Which test layer each scenario belongs at
 
 ## Execution Strategy
 
@@ -97,29 +100,33 @@ Merge findings from analysis (direct or subagent):
 
 1. **Cross-reference** code design with tests (if `--with-design`):
    - Pure functions with mocked tests → flag as violation
-   - I/O functions without integration tests → flag as gap
+   - I/O functions without interface tests → flag as gap
    - Over-mocked tests + mixed architecture → flag as root cause issue
 
-2. **Cross-reference** negative test coverage gaps:
+2. **Cross-reference** test layer placement (using criteria from `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`):
+   - Merge layer misplacements reported by the analysis-agent
+   - Correlate with code design findings — misplaced tests often indicate code design violations
+
+3. **Cross-reference** negative test coverage gaps:
    - Source validations (throws, guard clauses) without corresponding negative tests → flag as gap
    - State machine violations without tests → flag as gap
    - Error stubs / fallback handlers without tests → flag as gap
 
-3. **Cross-reference** edge case gaps:
+4. **Cross-reference** edge case gaps:
    - Boundary values (0, empty, single-element) in source logic without corresponding tests → flag as gap
    - Default parameter paths untested → flag as gap
    - Falsy-but-valid values where truthy checks exist → flag as gap
 
-4. **Calculate grade** (A/B/C/D/F):
+5. **Calculate grade** (A/B/C/D/F):
    - **HIGH issues always cap the grade at B or below**
-   - A: 90%+ pure/integration tests, <10% mocked, 90%+ negative coverage, 80%+ edge case coverage, zero HIGH issues, RITE all "pass"
-   - B: 70%+ pure/integration tests, <20% mocked, 70%+ negative coverage, one or few HIGH issues
-   - C: 50%+ pure/integration tests, <40% mocked, multiple HIGH issues
-   - D: <50% pure/integration tests, heavy mocking, many HIGH issues
+   - A: 90%+ pure/interface tests, <10% mocked, 90%+ negative coverage, 80%+ edge case coverage, zero HIGH issues, RITE all "pass"
+   - B: 70%+ pure/interface tests, <20% mocked, 70%+ negative coverage, one or few HIGH issues
+   - C: 50%+ pure/interface tests, <40% mocked, multiple HIGH issues
+   - D: <50% pure/interface tests, heavy mocking, many HIGH issues
    - F: Mostly mocked tests, tests implementation not behavior, many violations
 
-5. **Prioritize issues**:
-   - HIGH: Design violations, implementation testing, uncovered public API validations, correctness-affecting boundary conditions
+6. **Prioritize issues**:
+   - HIGH: Design violations, implementation testing, test layer misplacement (user-facing behavior tested at unit level), uncovered public API validations, correctness-affecting boundary conditions
    - MEDIUM: Over-mocking, brittle assertions, uncovered internal validations, untested defaults, test files exceeding 500 lines
    - LOW: Style issues, minor improvements, defensive checks unlikely to be hit
 
@@ -153,7 +160,7 @@ Pass the chosen scope to Phase 5 so the Plan agent's instruction reflects it.
 
 ### Phase 5: Planning (if --plan was specified, or user said yes in Phase 4.75)
 
-Before spawning the Plan agent, read `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/philosophy.md` yourself and embed its content into the agent prompt.
+Before spawning the Plan agent, read the shared references (`${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`, `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md`, `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`) yourself and embed their content into the agent prompt.
 
 Spawn a `Plan` subagent with a prompt containing:
 
@@ -201,7 +208,7 @@ Display the file path to the user so they can open it and run `/tdd` or implemen
 
 ## Important Notes
 
-- Read and apply the test philosophy from `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/philosophy.md` before analysis
+- Read and apply the shared references from `${CLAUDE_PLUGIN_ROOT}/references/` (code-testability.md, test-quality.md, test-pyramid.md) before analysis
 - Code design issues are often the root cause of test issues
 - Negative test gap analysis runs every time (not behind a flag) because untested validations are a fundamental quality concern
 - The target path can be a test directory OR a source directory — infer the counterpart accordingly
@@ -214,8 +221,17 @@ Display the file path to the user so they can open it and run `/tdd` or implemen
 
 ## References
 
-All reference documents are in `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/`:
+### Shared References (read before analysis)
 
-- **philosophy.md** — Test philosophy principles (read before analysis)
+All shared references are in `${CLAUDE_PLUGIN_ROOT}/references/`:
+
+- **code-testability.md** — How to structure code for testability (FC/IS, function types)
+- **test-quality.md** — What makes tests reliable and valuable (RITE, anti-patterns, mocking)
+- **test-pyramid.md** — Which test layer each scenario belongs at (4 layers, decision criteria)
+
+### Skill-Specific References
+
+Testify-specific references are in `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/`:
+
 - **analysis-prompt.md** — Instructions for the analysis-agent subagent
 - **report-template.md** — Markdown template for the alignment report

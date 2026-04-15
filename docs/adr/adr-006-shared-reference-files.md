@@ -1,6 +1,6 @@
 # ADR-006: Shared Reference Files Over Embedded Documentation
 
-**Status:** Accepted
+**Status:** Superseded by [ADR-009](adr-009-test-strategy-separation.md)
 **Date:** 2026-03-20
 
 ## Context

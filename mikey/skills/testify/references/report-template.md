@@ -24,7 +24,7 @@ Use this structure for the Test Philosophy Alignment Report.
 - Total tests: {count}
 - Unit (pure): {count}
 - Unit (mocked): {count}
-- Integration: {count}
+- Interface: {count}
 
 ### Anti-Patterns Found
 {Prioritized list with severity, file, line, issue, suggestion, confidence}
@@ -36,6 +36,12 @@ Use this structure for the Test Philosophy Alignment Report.
 ## Mock Analysis
 | Test File | Mock Count | Assertion Count | Ratio | Assessment |
 |-----------|------------|-----------------|-------|------------|
+
+## Test Layer Placement
+
+### Layer Misplacements
+| Test File:Line | Current Layer | Recommended Layer | Reason | Severity |
+|----------------|---------------|-------------------|--------|----------|
 
 ## Negative Test Coverage
 **{covered}/{total} validations tested ({percent}%)**

@@ -6,7 +6,10 @@ Use this prompt when spawning a subagent for large-scale test analysis (10+ file
 
 Analyze test files and source files against test philosophy principles. Return findings as valid JSON.
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/philosophy.md` for the complete test philosophy reference. Apply those principles throughout this analysis.
+Read the following shared references and apply their principles throughout this analysis:
+- `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md` — How to structure code for testability
+- `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md` — What makes tests reliable and valuable
+- `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md` — Which test layer each scenario belongs at
 
 ## Expected Input
 
@@ -28,10 +31,10 @@ Absolute file paths, one per line, prefixed with `- `:
 
 ### Flags
 - **include_design**: `true` or `false` — whether to perform code design analysis (section 4)
-- **include_coverage**: `true` or `false` — whether to incorporate coverage data (section 5)
+- **include_coverage**: `true` or `false` — whether to incorporate coverage data (section 6)
 
 ### Coverage Data
-Coverage summaries from the test runner, or `N/A` if not available. When present, use as ground truth in section 5.
+Coverage summaries from the test runner, or `N/A` if not available. When present, use as ground truth in section 6.
 
 ## What to Analyze
 
@@ -41,25 +44,13 @@ Perform ALL of the following that apply:
 
 For each test file:
 
-1. **Categorize tests** as:
-   - **Unit (pure)**: Tests a pure function with no mocks and no I/O
-   - **Unit (mocked)**: Tests that mock the code under test (not external runtime dependencies). Tests that only mock unavailable external runtimes count as `unitPure`.
-   - **Integration**: Spawns a process, uses real filesystem, exercises real entry points
+1. **Categorize tests** as **Unit (pure)**, **Unit (mocked)**, or **Interface** using the layer definitions in `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`. Note: tests that only mock unavailable external runtimes count as `unitPure`.
 
-2. **Evaluate RITE principles** (for ALL tests regardless of assertion style):
-   - **Readable**: Clear test structure? Descriptive names? Obvious arrange/act/assert?
-   - **Isolated**: No shared mutable state between tests? No order dependencies?
-   - **Thorough**: Happy path + edge cases + error conditions covered?
-   - **Explicit**: Tests observable behavior (return values, errors)? Or tests internal state / implementation details?
-   - Score each: `"pass"`, `"concern"` (with evidence), or `"fail"` (with evidence)
+2. **Evaluate RITE principles** (see `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md` for definitions). Score each principle per test file: `"pass"`, `"concern"` (with evidence), or `"fail"` (with evidence).
 
-3. **Detect anti-patterns**:
-   - **Implementation testing**: Assertions on mock calls, call counts, or internal method invocations instead of return values or observable behavior
-   - **Over-mocking**: Mock/stub/spy count exceeds assertion count
-   - **Brittle assertions**: Exact whitespace/formatting checks, snapshot tests of volatile output
-   - **Missing isolation**: Shared state, execution order dependencies
+3. **Detect anti-patterns** listed in `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md`: implementation testing, over-mocking, brittle assertions, missing isolation. Record the specific code evidence for each.
 
-4. **Verify 5 Questions** — each test should answer: What is the unit under test? What should it do? What is the actual output? What is the expected output? How do you reproduce the failure? If many tests fail to answer these questions, recommend adopting a [RITEway](https://github.com/paralleldrive/riteway) assertion library (available for JavaScript, Ruby, and Go — see philosophy reference for links), which enforces all 5 questions structurally.
+4. **Verify 5 Questions** — see `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md` for the questions and RITEway recommendation. If many tests fail to answer them, recommend adopting a RITEway assertion library.
 
 5. **Calculate metrics**: Mock count, assertion count, and ratio per test file
 
@@ -102,18 +93,27 @@ Scan source for boundary conditions and check whether tests exercise them:
 
 ### 4. Code Design Analysis (only if include_design is true)
 
-For each source file, classify functions/methods as:
-
-- **Pure**: No I/O, deterministic, returns data based solely on inputs
-- **I/O**: Reads/writes files, network, database, console/stdout, subprocess execution
-- **Orchestrator**: Coordinates pure and I/O functions, usually an entry point
-- **Violation**: Mixes data transformation AND I/O in the same function
-
-For violations, identify what pure logic could be extracted and suggest a function name.
+For each source file, classify functions/methods as **Pure**, **I/O**, **Orchestrator**, or **Violation** using the definitions in `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`. For violations, identify what pure logic could be extracted and suggest a function name.
 
 Grade each file: **Good** (clean separation), **Mixed** (1-2 violations), **Poor** (significant mixing).
 
-### 5. Coverage Data Analysis (only if include_coverage is true)
+### 5. Test Layer Placement Analysis (always)
+
+For each test, evaluate whether it is at the appropriate test layer:
+
+1. **Identify the test's current layer**: unit (pure), unit (mocked), or interface — based on how the test invokes the code under test.
+
+2. **Identify the recommended layer** using the decision criteria in `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`.
+
+3. **Flag misplacements** with severity:
+   - Unit test testing user-facing behavior that has a public entry point → **HIGH**
+   - Unit test excessively mocking internal dependencies (not external APIs) → **HIGH**
+   - Interface test using real external APIs when mocks would suffice → **MEDIUM**
+   - Pure logic tested at interface level when a unit test would suffice → **LOW**
+
+For each misplacement, record the test file:line, current layer, recommended layer, reason, and severity.
+
+### 6. Coverage Data Analysis (only if include_coverage is true)
 
 Use the provided coverage data as ground truth:
 
@@ -135,7 +135,7 @@ Return **valid JSON only** — no markdown, no explanations outside the JSON:
       {
         "path": "path/to/test_file",
         "testCount": 12,
-        "categories": { "unitPure": 8, "unitMocked": 2, "integration": 2 },
+        "categories": { "unitPure": 8, "unitMocked": 2, "interface": 2 },
         "riteEvaluation": {
           "readable": { "score": "pass|concern|fail", "evidence": "..." },
           "isolated": { "score": "pass|concern|fail", "evidence": "..." },
@@ -204,6 +204,18 @@ Return **valid JSON only** — no markdown, no explanations outside the JSON:
       }
     ]
   },
+  "testLayerPlacement": [
+    {
+      "testFile": "path/to/test_file",
+      "testLine": 42,
+      "testName": "name of the test",
+      "currentLayer": "unit|unitMocked|interface",
+      "recommendedLayer": "unit|interface|contract|e2e",
+      "reason": "why this test is at the wrong layer",
+      "severity": "HIGH|MEDIUM|LOW",
+      "confidence": "verified|inferred|uncertain"
+    }
+  ],
   "coverageAnalysis": {
     "_comment": "Only included when include_coverage is true",
     "coverageSource": "actual|inferred",
@@ -232,11 +244,12 @@ Return **valid JSON only** — no markdown, no explanations outside the JSON:
     "totalTests": 45,
     "unitPure": 30,
     "unitMocked": 8,
-    "integration": 7,
+    "interface": 7,
     "antiPatternCount": 8,
     "highSeverityIssues": 3,
     "negativeGaps": { "total": 8, "covered": 5, "uncovered": 3, "coveragePercent": 62.5 },
     "edgeCaseGaps": { "total": 12, "covered": 8, "uncovered": 4, "coveragePercent": 66.7 },
+    "layerMisplacements": 0,
     "grade": "A|B|C|D|F"
   }
 }
@@ -246,10 +259,10 @@ Return **valid JSON only** — no markdown, no explanations outside the JSON:
 
 **Any HIGH-severity issue caps the grade at B or below.**
 
-- **A**: 90%+ pure/integration tests, <10% mocked, 90%+ negative coverage, 80%+ edge case coverage, zero HIGH issues, RITE all "pass"
-- **B**: 70%+ pure/integration tests, <20% mocked, 70%+ negative coverage, one or few HIGH issues
-- **C**: 50%+ pure/integration tests, <40% mocked, multiple HIGH issues
-- **D**: <50% pure/integration tests, heavy mocking, many HIGH issues
+- **A**: 90%+ pure/interface tests, <10% mocked, 90%+ negative coverage, 80%+ edge case coverage, zero HIGH issues, RITE all "pass"
+- **B**: 70%+ pure/interface tests, <20% mocked, 70%+ negative coverage, one or few HIGH issues
+- **C**: 50%+ pure/interface tests, <40% mocked, multiple HIGH issues
+- **D**: <50% pure/interface tests, heavy mocking, many HIGH issues
 - **F**: Mostly mocked tests, tests implementation not behavior, many violations
 
 ## Confidence Reporting

@@ -8,7 +8,7 @@ This is a representative example of testify output. Adapt structure and language
 ## Executive Summary
 **Grade: B**
 
-Tests show good integration testing patterns via CLI invocation and real filesystem operations. Main issues: (1) 3 uncovered public API validations in `user_service`, (2) excessive mocking in `auth_handler` tests where pure logic could be extracted.
+Tests show good interface testing patterns via CLI invocation and real filesystem operations. Main issues: (1) 3 uncovered public API validations in `user_service`, (2) excessive mocking in `auth_handler` tests where pure logic could be extracted.
 
 ## Code Design Analysis
 
@@ -27,7 +27,7 @@ Tests show good integration testing patterns via CLI invocation and real filesys
 - Total tests: 28
 - Unit (pure): 15
 - Unit (mocked): 5
-- Integration: 8
+- Interface: 8
 
 ### Anti-Patterns Found
 1. **HIGH** - Implementation testing - `test_auth_handler:67` - Asserts mock HTTP client was called instead of checking return value `(verified)`

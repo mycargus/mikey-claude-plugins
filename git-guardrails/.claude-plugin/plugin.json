@@ -1,0 +1,24 @@
+{
+  "name": "git-guardrails",
+  "version": "0.1.0",
+  "description": "Blocks Claude Code from running a specific list of destructive git commands (force push, reset --hard, branch -D, clean -f, checkout .). Not a complete safeguard against data loss — see README for what it doesn't cover.",
+  "author": {
+    "name": "Michael Hargiss"
+  },
+  "license": "MIT",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/reject-destructive-git.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "keywords": ["git", "safety", "guardrails", "hooks", "destructive-commands"]
+}

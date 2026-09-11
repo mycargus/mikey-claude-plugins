@@ -12,6 +12,11 @@
       "name": "mikey",
       "source": "./mikey",
       "category": "development"
+    },
+    {
+      "name": "git-guardrails",
+      "source": "./git-guardrails",
+      "category": "safety"
     }
   ]
 }

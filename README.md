@@ -13,7 +13,16 @@ Install via the Claude Code marketplace by pointing at this repo:
 ```bash
 claude plugin marketplace add https://github.com/mycargus/mikey-claude-plugins
 claude plugin install mikey@mikey-claude-plugins
+claude plugin install git-guardrails@mikey-claude-plugins
 ```
+
+## Plugins
+
+### git-guardrails
+
+Blocks Claude Code from running a specific list of destructive git commands: `git push --force`, `git reset --hard`, `git branch -D`, `git clean -f`, and `git checkout .`. These commands can discard uncommitted or unpushed work with no undo, so this plugin denies them at the `PreToolUse` hook layer before they ever run. If you actually want to run one of these, run it yourself from your terminal — the hook only blocks Claude, not you.
+
+**Not a complete safeguard** — it's a narrow regex tripwire on these five commands, not a general defense against Claude (or anyone else) losing work through other git commands, non-git destructive actions, or non-Bash tool calls. See [git-guardrails/README.md](git-guardrails/README.md#limitations) for the full list of what it doesn't cover.
 
 ## Skills
 

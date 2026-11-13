@@ -210,6 +210,7 @@ Display this exact message to the user, substituting the actual file path:
 - Report violations without file:line evidence
 - Fabricate line numbers, code snippets, test counts, or coverage percentages
 - Propose fixes for issues you didn't actually find
+- Propose fixes that add test machinery the behavior doesn't need; prefer fixes that simplify the tests
 - Claim tests pass without running them and showing output
 - Summarize test results without showing actual output first
 

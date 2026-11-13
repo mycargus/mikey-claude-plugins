@@ -259,7 +259,7 @@ The shared references define these principles in full. They are **not optional**
 - **Functional Core / Imperative Shell** — Always separate pure logic from I/O (`${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`)
 - **Test layer placement** — Interface tests are the default for I/O; unit tests for pure functions only (`${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`)
 - **Test quality** — RITE tests, observable behavior, never mock pure functions (`${CLAUDE_PLUGIN_ROOT}/references/test-quality.md`)
-- **Minimal implementation** — Only write code the current test demands. Do not anticipate future scenarios.
+- **Minimal implementation** — Only write code the current test demands. Do not anticipate future scenarios. Keep it simple: choose the simplest design that passes, with no new module, abstraction, option or file the scenario doesn't need.
 
 ## Uncertainty Handling
 

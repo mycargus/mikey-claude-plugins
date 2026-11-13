@@ -1,7 +1,7 @@
 ---
 name: mikey:testify
 description: "Review and align tests with test philosophy. Identifies code design issues (I/O mixed with logic), implementation detail testing, excessive mocking, negative test coverage gaps (untested error paths/validations in source), and suggests improvements. Use --plan to generate a saved implementation plan without bloating the current context."
-argument-hint: [path] [--with-design] [--with-coverage] [--plan] [--export]
+argument-hint: "[path] [--files <path> ...] [--with-design] [--with-coverage] [--plan] [--export] [--auto]"
 user-invocable: true
 ---
 
@@ -12,10 +12,12 @@ user-invocable: true
 | Parameter | Description |
 |-----------|-------------|
 | `path` | Target directory or file (default: project test directory) |
+| `--files <path> [<path> ...]` | Analyze exactly these files, split into test and source files by project conventions; no related-file discovery |
 | `--with-design` | Analyze source code for I/O/logic mixing |
 | `--with-coverage` | Run tests with coverage, find untested code |
 | `--plan` | Generate implementation plan and save to project root |
 | `--export` | Save report to `testify-report-<timestamp>.md` |
+| `--auto` | Show nothing to the user, skip the plan prompt and Phase 5 (unless `--plan` was also given), and return the full report as the skill's result for the caller |
 
 ## Description
 
@@ -47,9 +49,12 @@ Review and align tests with embedded test philosophy. Identifies code design iss
 
 1. **Parse arguments** to extract:
    - Target path (default: detect from project structure)
+   - `--files` followed by one or more paths (analyze exactly these files)
    - `--with-design` flag (analyze source code structure)
    - `--with-coverage` flag (find untested code)
    - `--plan` flag (generate and save an implementation plan after analysis)
+   - `--export` flag (save the report to a file)
+   - `--auto` flag (return the report to the caller instead of displaying it)
 
 2. **Detect project conventions** by examining project files:
    - **Language and framework**: Look for `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Gemfile`, `*.csproj`, etc.
@@ -57,13 +62,13 @@ Review and align tests with embedded test philosophy. Identifies code design iss
    - **Test file patterns**: Detect conventions (e.g., `*_test.go`, `test_*.py`, `*.spec.ts`, `*.test.js`, `*Test.java`)
    - **Directory structure**: Identify where tests and source files live
 
-3. **Gather file lists**:
+3. **Gather file lists**. With `--files`, take exactly the given paths, split them into test files and source files by the conventions from step 2, and skip the rest of this step: no import-following and no counterpart lookup. Otherwise:
    - Determine if target is a test path or source path based on project conventions
    - Glob test and source files using detected patterns
    - If given a test path, find corresponding source files by reading imports
    - If given a source path, find corresponding test files by convention
 
-4. **Display setup summary** to the user before proceeding:
+4. **Display setup summary** to the user before proceeding (skip this under `--auto`):
    ```
    Phase 1: Setup
    - Target: {path} — {language} project, {test pattern} convention
@@ -132,7 +137,7 @@ Merge findings from analysis (direct or subagent):
 
 ### Phase 4: Report
 
-Generate a structured markdown report following the template in `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/report-template.md`.
+Generate a structured markdown report following the template in `${CLAUDE_PLUGIN_ROOT}/skills/testify/references/report-template.md`. Under `--auto`, do not display it: return the full report as the skill's result for the caller, after Phase 4.5 if `--export` is also set.
 
 **Evidence Standards:**
 - Every finding MUST include `[file:line]` reference
@@ -144,7 +149,7 @@ Generate a structured markdown report following the template in `${CLAUDE_PLUGIN
 
 Write the report to `testify-report-<timestamp>.md` in the project root using `date +%Y%m%d-%H%M%S` for the timestamp.
 
-### Phase 4.75: Plan Prompt (if --plan was NOT specified)
+### Phase 4.75: Plan Prompt (if --plan was NOT specified and --auto was NOT specified)
 
 After displaying the report, use AskUserQuestion to ask:
 
@@ -158,7 +163,7 @@ After displaying the report, use AskUserQuestion to ask:
 
 Pass the chosen scope to Phase 5 so the Plan agent's instruction reflects it.
 
-### Phase 5: Planning (if --plan was specified, or user said yes in Phase 4.75)
+### Phase 5: Planning (if --plan was specified, or user said yes in Phase 4.75; never under `--auto` unless `--plan` was given)
 
 Before spawning the Plan agent, read the shared references (`${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`, `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md`, `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`) yourself and embed their content into the agent prompt.
 
@@ -205,6 +210,7 @@ Display this exact message to the user, substituting the actual file path:
 - Report violations without file:line evidence
 - Fabricate line numbers, code snippets, test counts, or coverage percentages
 - Propose fixes for issues you didn't actually find
+- Propose fixes that add test machinery the behavior doesn't need; prefer fixes that simplify the tests
 - Claim tests pass without running them and showing output
 - Summarize test results without showing actual output first
 

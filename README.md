@@ -42,6 +42,32 @@ Open claude and type `/mikey:tdd` to see optional parameters.
 
 See [mikey/skills/tdd/SKILL.md](mikey/skills/tdd/SKILL.md) for more information.
 
+### /mikey:user-scenarios
+
+Write Given/When/Then user scenarios with Claude before any code exists. You decide the behavior; Claude proposes, asks, and records. Each scenario gets an id (`PREFIX-nnn`) under its own `###` heading, with a Risk paragraph, grouped under `##` headings. At the end of a session, or when you ask, a fresh subagent reviews the scenarios for two readings, contradictions, Risk mismatches, missing scenarios and format slips, and each finding comes back to you as a proposal, before `/mikey:build` would trip on it.
+
+Open claude and type `/mikey:user-scenarios` to start.
+
+See [mikey/skills/user-scenarios/SKILL.md](mikey/skills/user-scenarios/SKILL.md) for more information.
+
+### /mikey:comment-review
+
+Apply one standard to code comments: explain why, concisely, to a maintainer reading the code as it is now. Never history, never what the code does. Factual claims about tools, flags, or APIs are verified or flagged, never softened. Proposes edits and waits by default; `--apply` classifies and edits without waiting, and reports claims it can't verify.
+
+Open claude and type `/mikey:comment-review` to see optional parameters.
+
+See [mikey/skills/comment-review/SKILL.md](mikey/skills/comment-review/SKILL.md) for more information.
+
+### /mikey:build
+
+Implement one approved group of scenarios end to end. The main session coordinates; subagents do the work. If your tree already has changes, such as from a run that stopped, it asks whether to continue from them or stop. A fresh reviewer reads the scenarios before any code is written and stops the run only on a contradiction; a scenario with two or more readings is built as its simplest reading, which stands against later picks and across runs and binds every fixer, and is listed in the final report, next to the readings and product values the implementer and fixers chose. Then `/mikey:tdd` implements, a fixer subagent runs `/mikey:testify` and applies its findings, up to three rounds of a fresh adversarial reviewer and a fresh fixer follow, `/mikey:comment-review` cleans comments, and the chunk is committed (never pushed) once tests and lint pass.
+
+Flow order: write and approve scenarios with `/mikey:user-scenarios`, then run `/mikey:build <doc path> "<group heading>"` once per group.
+
+Open claude and type `/mikey:build` to see the arguments.
+
+See [mikey/skills/build/SKILL.md](mikey/skills/build/SKILL.md) for more information, and [docs/user-scenarios/mikey-build.md](docs/user-scenarios/mikey-build.md) for the scenarios it implements.
+
 ## Development
 
 ### Local dev workflow

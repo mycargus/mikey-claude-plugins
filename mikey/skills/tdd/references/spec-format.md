@@ -62,6 +62,26 @@ When a new user tries to register with "user@example.com"
 Then registration fails with "email already taken"
 ```
 
+### User-scenarios docs (`/mikey:user-scenarios`)
+
+A scenario is a `###` heading (its text is the scenario name, often an id such as `CART-003`), a `**Risk:**` paragraph, and a blockquote of bold keywords. `##` headings are groups of scenarios.
+
+```markdown
+## Starting a chunk
+
+### CART-001
+
+**Risk:** If removing an item leaves a stale total, customers are charged for
+goods they no longer want.
+
+> **Given** a cart with three items
+> **When** the user removes one item
+> **Then** the cart shows two items
+> **And** the total excludes the removed item
+```
+
+A continuation line of a clause starts with `>` and indentation instead of a keyword; it belongs to the clause above it.
+
 ## Parsing Rules
 
 1. Look for lines starting with `Given`, `When`, `Then`, `And`, `But` (case-insensitive)
@@ -71,6 +91,12 @@ Then registration fails with "email already taken"
    - Blank-line separation between Given/When/Then groups
 4. Extract `Feature:` or `#` headers as the feature name
 5. If no explicit scenario grouping, treat each Given/When/Then triplet as a scenario
+6. **User-scenarios format.** A file with `###` headings that are followed by Given/When/Then blockquotes uses this reading, where `##` means a group and `###` means a scenario (not the single-level `##` scenario headers of the plain Markdown format above):
+   - Strip the leading `>` and the `**` around the keyword, so `> **Given** x` reads as `Given x`. Remove nothing else: the clause text reaches the tdd-agent unchanged. `**And**` continues the clause before it.
+   - The `###` heading text is the scenario name.
+   - Sections with no Given/When/Then lines (`## Decided, no scenario needed`, `## Parked`, intro prose) contain no scenarios and are skipped.
+7. **Risk paragraph.** A `**Risk:**` paragraph (from the `**Risk:**` marker to the next blank line or the blockquote) belongs to the scenario that follows it. Keep it with that scenario and pass it to the tdd-agent verbatim as the reason the scenario matters. Never drop it, and never fold it into the Given/When/Then text.
+8. **`--group "<heading>"`.** Keep only the scenarios between the matching `##` heading and the next `##` heading (or the end of the file). The match ignores surrounding whitespace and letter case. If no `##` heading matches, or the matched heading has no scenarios (a matched heading with no scenarios counts as missing), stop and list the `##` headings that contain scenarios.
 
 ## Writing Good Specs
 

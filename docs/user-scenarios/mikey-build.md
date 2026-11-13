@@ -44,7 +44,8 @@ unattended.
 > **When** implementation starts
 > **Then** `/mikey:tdd` implements the chunk's scenarios through red-green-refactor without asking
 >   me to confirm the list
-> **And** I see one progress line per scenario, nothing more
+> **And** I see one line per scenario, printed when tdd returns, plus one line per step of the
+>   flow, nothing more
 
 ### BUILD-004
 
@@ -54,7 +55,9 @@ and later review rounds are judged by a session already anchored on the implemen
 > **Given** `/mikey:build` is running
 > **When** any source, test or doc file changes
 > **Then** a subagent made the change
-> **And** the main session only briefs subagents, reads their reports, and talks to me
+> **And** the main session only coordinates: it reads the project's conventions and git state,
+>   invokes the skills, briefs subagents, reads their reports, runs the final test, lint and
+>   commit commands, and talks to me
 
 ### BUILD-005
 
@@ -112,6 +115,8 @@ a real bug found in round three has no round left to be fixed and re-checked.
 > **When** that round reported no HIGH finding
 > **Then** the review loop ends
 > **And** the flow moves on to cleaning comments
+> **And** a MEDIUM or LOW finding the fixer could not fix never blocks; it's listed in the final
+>   report
 
 ### BUILD-010
 
@@ -138,6 +143,8 @@ faithfully implements a mistake.
 > **Then** the scenario doc is unchanged
 > **And** nothing is committed
 > **And** I'm shown the reviewer's note on the scenario and the flow stops until I rule on it
+> **And** only a concern about a scenario in the chunk's own group stops the flow; a concern about
+>   another group goes in the final report only
 
 ### BUILD-012
 
@@ -148,6 +155,7 @@ text and the final decisions get made by a session that has lost the start of th
 > **When** a round finishes
 > **Then** I see one line: the round number and the count of findings by severity
 > **And** the full findings of every round, each with its outcome, appear only in the final report
+>   or at a stop (BUILD-010, BUILD-011)
 
 ## Cleaning comments
 
@@ -223,7 +231,8 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   scenario doc. Chunking happens when the doc is written, not at build time.
 - Decided November 12, 2026: models per role. Implementer Sonnet at high effort, adversarial
   reviewer Opus at medium effort, fixer and comment reviewer Sonnet at low effort. Testify's
-  analysis agent inherits the main session's model.
+  analysis agent inherits the model of the subagent that invokes testify (see the round 2 decision
+  below).
 - Decided November 12, 2026: always a new commit, never an amend. Squashing onto a rebase-chain
   base is done by hand.
 - Decided November 12, 2026: the flow runs `/mikey:tdd` once per chunk; review rounds re-run only
@@ -242,6 +251,26 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
     `user-scenarios` gains the id rule and the heading-per-scenario layout this document uses.
   - Two new agents, `adversarial-reviewer` and `fixer`, with their protocols in `agents/*.md`
     system prompts (ADR-005); `/mikey:build` passes only dynamic context.
+- Decided November 12, 2026, after review round 1: the tdd-agent protocol tightening is
+  authorized (outside-in interface tests preferred; RED shown as real failing output, where a
+  missing symbol or import counts as a valid first failure for new code; real output on every
+  run; a scenario-to-test list at the end; fakes only for network, clock and third-party
+  services; never edits specs or git state). `/mikey:testify` gains `--files` (exact file list,
+  no related-file discovery) and `--auto` (no report display, no plan prompt); build passes both.
+  The moved skills keep the extra guidance the writer added (flow order, worked example, group
+  sizing, argument hint) and the em-dash rewrites. The user-level copies of `user-scenarios` and
+  `comment-review` were deleted the same day.
+- Decided November 12, 2026: three pre-flight stops need no scenario. `/mikey:build` stops before
+  doing anything when the working tree has uncommitted changes other than the scenario doc, when
+  no test command can be found, or when the directory isn't a git repository.
+- Decided November 12, 2026, after review round 2: three mid-flow stops need no scenario and
+  also gate the commit in BUILD-015. The flow stops before the commit, showing me the output
+  tail, when a subagent leaves the test suite red, when `/mikey:tdd` leaves a scenario
+  unfinished, or when a commit hook fails.
+- Decided November 12, 2026: `/mikey:testify` runs inside the fixer subagent of BUILD-005 (one
+  Sonnet low subagent invokes it with `--with-design --auto --files`, then applies the findings),
+  because an inline skill has no way to return a report without printing it into the main
+  session. Testify's own analysis agent therefore inherits that subagent's model.
 
 ## Parked
 

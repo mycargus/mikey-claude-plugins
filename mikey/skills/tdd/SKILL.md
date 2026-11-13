@@ -1,7 +1,7 @@
 ---
 name: mikey:tdd
 description: "TDD workflow driven by Given/When/Then specifications. Provide a spec file or folder path for autonomous batch processing, or run without a path for an interactive TDD loop. Implements code using Functional Core / Imperative Shell design principles."
-argument-hint: [path] [--plan] [--export]
+argument-hint: '[path] [--plan] [--export] [--auto] [--group "<heading>"] [--test-command "<cmd>"] [--model <model>] [--effort <effort>]'
 user-invocable: true
 ---
 
@@ -14,13 +14,18 @@ user-invocable: true
 | `path` | File or folder containing Given/When/Then specs (triggers agent mode) |
 | `--plan` | Show implementation plan only, do not write code |
 | `--export` | Save session report to `sdd-report-<timestamp>.md` |
+| `--auto` | Agent mode only: skip the confirmation prompt and implement every parsed scenario |
+| `--group "<heading>"` | Agent mode only: implement only the scenarios under that `##` heading of the spec file |
+| `--test-command "<cmd>"` | Use this test command instead of detecting one; passed to the tdd-agent |
+| `--model <model>` | Model for the tdd-agent spawn (default: inherit the session's model) |
+| `--effort <effort>` | Effort for the tdd-agent spawn (default: the session's effort) |
 
 ## Description
 
 Test-Driven Development workflow guided by Given/When/Then specifications and the embedded test philosophy.
 
 **Two modes:**
-- **Agent mode** (path provided): Reads spec files, extracts scenarios, and implements each via Red-Green-Refactor autonomously with check-ins between scenarios.
+- **Agent mode** (path provided): Reads spec files, extracts scenarios, and implements each via Red-Green-Refactor autonomously with check-ins between scenarios (none under `--auto`).
 - **Interactive mode** (no path): Prompts the user to describe behaviors one at a time, implementing each through the TDD cycle with user approval.
 
 **This skill always applies:**
@@ -44,6 +49,10 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
    - Target path (optional — file or folder of spec files)
    - `--plan` flag (plan only, do not implement)
    - `--export` flag (save report)
+   - `--auto` flag (agent mode: no confirmation prompt)
+   - `--group "<heading>"` (agent mode: only the scenarios under that `##` heading; requires `path` to be a single file)
+   - `--test-command "<cmd>"` (overrides test runner detection; passed to the tdd-agent as the test command)
+   - `--model` and `--effort` values (passed to the tdd-agent spawn; absent means the spawn inherits the session's model and effort)
 
 2. **Detect project conventions** by examining project files:
    - **Language and framework**: Look for `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Gemfile`, `*.csproj`, etc.
@@ -52,7 +61,7 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
    - **Directory structure**: Identify where tests and source files live
    - **Existing test style**: Read 1-2 existing test files to match conventions (assertion library, naming, structure)
 
-3. **Display setup summary** to the user before proceeding:
+3. **Display setup summary** to the user before proceeding. With `--auto`, skip the summary and keep the detected values for the spawn:
    ```
    Phase 1: Setup
    - Target: {path or "interactive mode"}
@@ -75,8 +84,9 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
 1. If path is a file, read it
 2. If path is a directory, glob for spec files: `**/*.feature`, `**/*.md`, `**/*.txt`, `**/*.spec`
 3. Apply the Spec Format from Embedded References below
-4. Parse Given/When/Then scenarios from the files using those parsing rules
+4. Parse Given/When/Then scenarios from the files using those parsing rules, keeping each scenario's `**Risk:**` paragraph with it (see "Risk paragraph" in the spec format)
 5. Group scenarios by feature/file
+6. If `--group` is set, keep only the scenarios under the `##` heading whose text matches the given heading (surrounding whitespace and letter case ignored). If no `##` heading matches, or the matched heading has no scenarios, or `path` is not a single file, stop before implementing anything and list the `##` headings that contain scenarios, so the caller can correct the argument.
 
 #### Step 2: Present Plan
 
@@ -99,7 +109,9 @@ Test runner: {detected runner}
 
 If `--plan` flag is set: **STOP HERE**. Output the plan and exit.
 
-If `--plan` is not set: Ask the user to confirm before proceeding. Use AskUserQuestion:
+If `--plan` is not set and `--auto` is set: skip the confirmation and the plan listing above. Print nothing, then go to Step 3. The caller approved these scenarios already.
+
+If `--plan` is not set and `--auto` is not set: Ask the user to confirm before proceeding. Use AskUserQuestion:
 - "Implement all scenarios"
 - "Let me pick specific scenarios"
 - "Cancel"
@@ -115,14 +127,16 @@ Spawn a `tdd-agent` with the following context:
    - Source directory
    - Test directory
    - Existing test style conventions (assertion library, naming, structure)
-2. **Scenarios**: The selected scenarios, formatted as numbered Given/When/Then blocks
+2. **Scenarios**: The selected scenarios, formatted as numbered Given/When/Then blocks. The clause text reaches the agent unchanged: remove only the leading `>` and the `**` markers around the keywords, and never paraphrase, shorten or reorder it. When a scenario has a Risk paragraph, include it verbatim under its block, labelled as the reason the scenario matters.
+
+If `--model` or `--effort` was given, pass them as the Agent tool's `model` and `effort` parameters for this spawn. Otherwise pass neither.
 
 Wait for agent completion.
 
 #### Step 4: Post-Completion
 
 After the agent completes:
-1. Show final test suite results
+1. Show final test suite results. With `--auto`, print nothing: hand the agent's report (each scenario with its covering test, and the suite result with counts) back to the caller, who owns all progress output.
 2. If `--export`: write report (see Export section)
 
 ### Phase 2B: Interactive Mode (no spec path)
@@ -253,7 +267,7 @@ The shared references define these principles in full. They are **not optional**
 **If the test fails unexpectedly during GREEN:**
 - Debug the failure
 - Fix the implementation (not the test — the test defines the desired behavior)
-- If the test itself was wrong, explain why and ask the user before changing it
+- If the test itself was wrong, explain why and ask the user before changing it (under `--auto`, report the wrong test in the final reply instead)
 
 **Never:**
 - Skip a failing test

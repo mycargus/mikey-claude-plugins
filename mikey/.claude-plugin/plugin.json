@@ -1,12 +1,17 @@
 {
   "name": "mikey",
-  "version": "0.9.8",
-  "description": "Michael Hargiss's Claude Code plugin collection. Test philosophy alignment (/mikey:testify) and spec-driven TDD workflows (/mikey:tdd).",
+  "version": "0.10.0",
+  "description": "Michael Hargiss's Claude Code plugin collection. Test philosophy alignment (/mikey:testify), spec-driven TDD (/mikey:tdd), scenario writing (/mikey:user-scenarios), comment cleanup (/mikey:comment-review), and a chunk build loop that ties them together (/mikey:build).",
   "author": {
     "name": "Michael Hargiss"
   },
   "license": "MIT",
-  "agents": ["./agents/analysis-agent.md", "./agents/tdd-agent.md"],
+  "agents": [
+    "./agents/analysis-agent.md",
+    "./agents/tdd-agent.md",
+    "./agents/adversarial-reviewer.md",
+    "./agents/fixer.md"
+  ],
   "skills": "./skills/",
   "hooks": {
     "PreToolUse": [
@@ -22,5 +27,5 @@
       }
     ]
   },
-  "keywords": ["development", "testing", "tdd", "bdd", "spec", "given-when-then", "test-philosophy", "coverage", "quality"]
+  "keywords": ["development", "testing", "tdd", "bdd", "spec", "given-when-then", "test-philosophy", "coverage", "quality", "user-scenarios", "code-review", "comments", "orchestrator"]
 }

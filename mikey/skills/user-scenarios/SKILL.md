@@ -29,11 +29,18 @@ Worked examples this skill is distilled from:
 
 1. **Read all existing source material first.** READMEs, schemas, existing tool docs, and
    scratchpads. Ground every proposal in them, and cite the source when a decision came from one.
-2. **Propose one scenario at a time.** Present it in full (id, Risk, Given/When/Then), then stop
-   and wait for approval. You may propose two scenarios together only when they're an obvious pair
-   (a rule and its mirror).
+2. **Propose one scenario at a time, through the AskUserQuestion tool.** Every proposal and every
+   approval is an AskUserQuestion call, never a question typed at the end of a message: the user
+   answers by selecting, and free text stays available through the tool's own "Other" option.
+   Put the full scenario (id, Risk, Given/When/Then) in the `preview` of each option so the user
+   reads it in the same place they answer; text printed before a tool call is easy to miss. Offer
+   approve, change this line (the user types the change), and reject. You may propose two
+   scenarios together only when they're an obvious pair (a rule and its mirror); then the options
+   are approve both, approve one and change the other, change both.
 3. **Never guess intended behavior.** When a Given/When/Then has more than one plausible reading,
-   list the readings concretely (2-3 bullets) and ask which one the user means before writing.
+   put the readings as the options of one AskUserQuestion (2-3, each stated concretely) and ask
+   which one the user means before writing. Group questions when they're independent, up to four
+   per call, so the user answers a round at a time.
 4. **Never change, remove, or add a scenario without explicit approval.** Wording tweaks count.
    When the user flags a confusing line, propose the replacement text and ask before editing.
    A design decision that changes one phrase in many scenarios (e.g. renaming the tracking file)
@@ -171,3 +178,7 @@ This skill is updated as the user and Claude learn what works.
   Split such a proposal into separate scenarios before presenting it.
 - 2026-11-12: Added ids and the heading-per-scenario layout so `/mikey:build` and the tdd parser
   can take one group and tests can name the scenario they cover.
+- 2026-11-12: First run of the plugin version proposed a scenario in prose and asked "do you
+  approve?" at the end of the message. The user wants every proposal and decision to go through
+  AskUserQuestion with the scenario text in the option preview; earlier the same day a scenario
+  printed before a tool call was never seen at all. Rules 2 and 3 now require the tool.

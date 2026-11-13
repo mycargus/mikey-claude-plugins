@@ -9,7 +9,7 @@ user-invocable: true
 
 Implements one `##` group of an approved user-scenarios doc. The scenarios are written and approved beforehand with `/mikey:user-scenarios`. This skill never proposes, edits, or reorders scenarios; when the user rules on scenario-read concerns, `/mikey:user-scenarios` does that under the user's approval (BUILD-024).
 
-Specification: `docs/user-scenarios/mikey-build.md` (BUILD-001 to BUILD-024). Design record: `docs/adr/adr-011-build-orchestrator.md`.
+Specification: `docs/user-scenarios/mikey-build.md` (BUILD-001 to BUILD-025). Design record: `docs/adr/adr-011-build-orchestrator.md`.
 
 | Parameter | Description |
 |-----------|-------------|

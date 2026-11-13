@@ -276,6 +276,17 @@ chunk; if the absence is silent, I assume a check ran that didn't.
 > **Then** only the test suite gates the commit
 > **And** the final report says no lint step ran
 
+### BUILD-026
+
+**Risk:** If the scenario doc is never committed, approved scenario changes live only as
+uncommitted edits, and a stopped run or a stash can lose a day of rulings.
+
+> **Given** the scenario doc has uncommitted changes, from an earlier session or from rulings in
+>   this run
+> **When** the scenario read finds nothing that stops the run, just before tdd starts
+> **Then** build commits the scenario doc on its own, with nothing else in that commit
+> **And** the chunk's code is committed separately at the end
+
 ## Finishing
 
 ### BUILD-017

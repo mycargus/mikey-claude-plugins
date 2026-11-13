@@ -9,7 +9,7 @@ user-invocable: true
 
 Implements one `##` group of an approved user-scenarios doc. The scenarios are written and approved beforehand with `/mikey:user-scenarios`. This skill never proposes, edits, or reorders scenarios; when the user rules on scenario-read concerns, `/mikey:user-scenarios` does that under the user's approval (BUILD-024).
 
-Specification: `docs/user-scenarios/mikey-build.md` (BUILD-001 to BUILD-025). Design record: `docs/adr/adr-011-build-orchestrator.md`.
+Specification: `docs/user-scenarios/mikey-build.md` (BUILD-001 to BUILD-026). Design record: `docs/adr/adr-011-build-orchestrator.md`.
 
 | Parameter | Description |
 |-----------|-------------|
@@ -52,7 +52,7 @@ Every reviewer and every fixer is a new spawn, and so is the scenario reader. Ne
 - **Copy, don't retype.** Scenario text, findings, file paths, test names and counts are copied from the doc, the subagents' reports and command output. Never recompose them from memory.
 - **Never push. Never amend.** Always a new commit.
 - **Never change the scenario doc.** A scenario you think is wrong goes to the user (BUILD-019, BUILD-020). The one way the doc changes is `/mikey:user-scenarios` in Phase 1, when the user chooses to rule on the scenario read's concerns, and every change there needs the user's approval (BUILD-024). Outside that skill the main session never edits the doc, and no subagent ever does.
-- **Output is one line per step.** Print one line per step of the flow (start, scenario read, tdd, testify-and-fix, each review round, comment pass, gate, commit), plus the per-scenario lines when tdd returns, and nothing else except at a stop or in the final report.
+- **Output is one line per step.** Print one line per step of the flow (start, scenario read, scenario doc commit, tdd, testify-and-fix, each review round, comment pass, gate, commit), plus the per-scenario lines when tdd returns, and nothing else except at a stop or in the final report.
 - **A stop is a stop.** When a rule below says the flow stops, print what it says, print the final report (Phase 7), and end your turn. Don't continue until the user says what to do.
 - Keep a running ledger in your context: each scenario with its covering test, every finding with its outcome per pass, scenario concerns (each with its kind), the rulings made in Phase 1 and the Phase 1 concerns the user chose to continue past, `Owner decision:` lines, whether the run continued from existing changes and the paths the user approved, unverified comment claims, and command results. The final report is built from it.
 
@@ -76,6 +76,8 @@ If it reports any `ambiguity-or-contradiction` concern for this group, no code i
 - **Rule now.** Invoke `/mikey:user-scenarios` with the Skill tool, `skill: "mikey:user-scenarios"`, with arguments: the scenario doc path, then the concerns verbatim as the things to rule on. That skill's own rules apply: one proposal at a time, and the user's approval for every change. When it returns, mark those concerns as ruled on in the ledger and record the rulings it reports. Re-read the doc and take the chunk again as in Phase 0 step 3, since the chunk's text may have changed and ids may have been retired. If the heading no longer matches a group, stop as in Phase 0 step 2. Then run this phase again with a fresh reader. The question can come again. From here on, every phase uses the current chunk text.
 - **Stop.** Say the scenario doc has no changes beyond any the user approved in this phase, no code was written and nothing is committed. Print the final report and end your turn.
 - **Continue anyway.** Record the concerns in the ledger as open concerns the user chose to continue past, and go on to Phase 2. tdd implements the scenarios as written. These concerns don't stop the commit in Phase 6.
+
+Once nothing here stops the run, and before Phase 2, run `git status --porcelain`. If it shows the scenario doc changed, stage only the scenario doc by explicit path and commit it on its own with a short docs message: an imperative subject, a one-line why, the session's attribution trailer, every line 72 characters or fewer, and the project's CLAUDE.md commit rules if it has them. Never amend, push or pass `--no-verify`. Print one line with its short hash. The chunk's code is committed separately in Phase 6 (BUILD-026).
 
 ## Phase 2: Implement
 
@@ -133,7 +135,7 @@ From its report, record the edit counts and each comment claim it could not veri
 
 Print the report whether the flow committed or stopped (BUILD-017). Build it from the ledger. Don't retype: paths, test names and counts come from the subagents' reports and command output.
 
-1. **Outcome**: the commit subject and short hash, or the stop reason. If the run continued from existing changes, say so and list the paths the user approved in Phase 0. If the user ruled on scenario-read concerns, or continued past them, say so.
+1. **Outcome**: the commit subject and short hash, or the stop reason. If the scenario doc was committed before tdd, give that commit's subject and short hash too. If the run continued from existing changes, say so and list the paths the user approved in Phase 0. If the user ruled on scenario-read concerns, or continued past them, say so.
 2. **Scenario read** (Phase 1): for each read, the concerns it reported with their kinds, or none. Then the rulings made through `/mikey:user-scenarios`, and the concerns the user chose to continue past, or none (BUILD-024).
 3. **Scenarios**: each scenario id in the chunk with the test that covers it.
 4. **Test-design review**: each testify finding with its outcome.

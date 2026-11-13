@@ -1,7 +1,7 @@
 ---
 name: mikey:tdd
 description: "TDD workflow driven by Given/When/Then specifications. Provide a spec file or folder path for autonomous batch processing, or run without a path for an interactive TDD loop. Implements code using Functional Core / Imperative Shell design principles."
-argument-hint: '[path] [--plan] [--export] [--auto] [--group "<heading>"] [--test-command "<cmd>"] [--model <model>] [--effort <effort>]'
+argument-hint: '[path] [--plan] [--export] [--auto] [--group "<heading>"] [--existing-work] [--test-command "<cmd>"] [--model <model>] [--effort <effort>]'
 user-invocable: true
 ---
 
@@ -16,6 +16,7 @@ user-invocable: true
 | `--export` | Save session report to `sdd-report-<timestamp>.md` |
 | `--auto` | Agent mode only: skip the confirmation prompt and implement every parsed scenario |
 | `--group "<heading>"` | Agent mode only: implement only the scenarios under that `##` heading of the spec file |
+| `--existing-work` | Agent mode only: the tree already holds work in progress for these scenarios; passed to the tdd-agent |
 | `--test-command "<cmd>"` | Use this test command instead of detecting one; passed to the tdd-agent |
 | `--model <model>` | Model for the tdd-agent spawn (default: inherit the session's model) |
 | `--effort <effort>` | Effort for the tdd-agent spawn (default: the session's effort) |
@@ -51,6 +52,7 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
    - `--export` flag (save report)
    - `--auto` flag (agent mode: no confirmation prompt)
    - `--group "<heading>"` (agent mode: only the scenarios under that `##` heading; requires `path` to be a single file)
+   - `--existing-work` (agent mode: some scenarios may already have passing covering tests)
    - `--test-command "<cmd>"` (overrides test runner detection; passed to the tdd-agent as the test command)
    - `--model` and `--effort` values (passed to the tdd-agent spawn; absent means the spawn inherits the session's model and effort)
 
@@ -128,6 +130,7 @@ Spawn a `tdd-agent` with the following context:
    - Test directory
    - Existing test style conventions (assertion library, naming, structure)
 2. **Scenarios**: The selected scenarios, formatted as numbered Given/When/Then blocks. The clause text reaches the agent unchanged: remove only the leading `>` and the `**` markers around the keywords, and never paraphrase, shorten or reorder it. When a scenario has a Risk paragraph, include it verbatim under its block, labelled as the reason the scenario matters.
+3. **Existing work**: only when `--existing-work` is set, a section with that heading saying the tree already holds work in progress for these scenarios.
 
 If `--model` or `--effort` was given, pass them as the Agent tool's `model` and `effort` parameters for this spawn. Otherwise pass neither.
 

@@ -32,35 +32,37 @@ guessed subset, hours of agent work land on the wrong scenarios.
 > **And** I'm shown the group headings the doc does have and told to pick one or write the missing
 >   group with `/mikey:user-scenarios`
 
-### BUILD-023
+### BUILD-027
 
-**Risk:** If an ambiguous scenario is found only after the code is written, hours of agent work
-go into one reading before the run stops for my ruling anyway. If the reader can't see
-the rest of the doc, it stops the run on gaps another group already answers.
+**Risk:** If a contradiction is found only after the code is written, hours of agent work go into
+a scenario that can't be satisfied before the run stops for my ruling anyway.
 
 > **Given** a chunk selected by BUILD-001
 > **When** the run starts, before any code is written
 > **Then** a fresh reviewer reads the whole scenario doc and no code
 > **And** it judges only the chunk's scenarios, using the other groups and the Decided section
 >   as context
-> **And** if a chunk scenario can be read more than one way, or contradicts another scenario or
->   the Decided section, nothing is implemented yet, I'm shown the reviewer's notes verbatim, and
->   BUILD-024 decides what happens next
+> **And** if a chunk scenario contradicts another scenario or the Decided section, nothing is
+>   implemented yet, I'm shown the reviewer's notes verbatim, and BUILD-028 decides what happens
+>   next
+> **And** a chunk scenario that can be read more than one way never stops the run (BUILD-031)
 
-### BUILD-024
+### BUILD-028
 
 **Risk:** If every scenario-read stop sends me off to `/mikey:user-scenarios` and back, each
 small ruling costs a full restart, and I stop running build on new groups.
 
-> **Given** the scenario read reported an ambiguity or contradiction in the chunk
+> **Given** the scenario read reported a contradiction in the chunk
 > **When** the run stops before any code is written
-> **Then** I'm asked whether to rule on the concerns now, stop, or continue anyway
-> **And** if I rule now, `/mikey:user-scenarios` takes the concerns one at a time, and every
->   scenario change still needs my approval
+> **Then** I'm asked whether to rule on the contradictions now, stop, or continue anyway
+> **And** if I rule now, `/mikey:user-scenarios` takes the contradictions one at a time, and
+>   every scenario change still needs my approval
 > **And** once I've ruled, the scenario read runs again on the changed doc before any code is
 >   written
-> **And** if I continue anyway, tdd implements the scenarios as written and the concerns stay
->   open in the final report
+> **And** if I continue anyway, tdd implements the scenarios as written, with each ambiguity
+>   built as its chosen reading, and the concerns stay open in the final report
+> **And** a contradiction I continued past is not raised again as a stop when a later reviewer
+>   or fixer reports the same pair of scenarios; a new contradiction still stops
 > **And** if I stop, nothing changes
 
 ### BUILD-021
@@ -100,7 +102,7 @@ and later review rounds are judged by a session already anchored on the implemen
 > **Given** `/mikey:build` is running
 > **When** any source, test or doc file changes
 > **Then** a subagent made the change, except scenario doc edits I approve through
->   `/mikey:user-scenarios` at a scenario-read stop (BUILD-024)
+>   `/mikey:user-scenarios` at a scenario-read stop (BUILD-028)
 > **And** the main session only coordinates: it reads the project's conventions and git state,
 >   invokes the skills, briefs subagents, reads their reports, runs the final test, lint and
 >   commit commands, and talks to me
@@ -177,18 +179,37 @@ wrong.
 >   say what to do
 > **And** the third round's findings are left unfixed, exactly as the reviewer wrote them
 
-### BUILD-019
+### BUILD-029
 
-**Risk:** If a reviewer who notices that a scenario is wrong either fixes the scenario or stays
-quiet, I end up with an unapproved spec change or a commit that faithfully implements a mistake.
+**Risk:** If a reviewer who notices that a scenario contradicts another either fixes the scenario
+or stays quiet, I end up with an unapproved spec change or a commit that faithfully implements a
+mistake.
 
-> **Given** a review round reports that a scenario in the chunk's own group can be read more than
->   one way, or contradicts another scenario or the Decided section
+> **Given** a review round reports that a scenario in the chunk's own group contradicts another
+>   scenario or the Decided section
 > **When** the chunk otherwise completes
 > **Then** the scenario doc is unchanged
 > **And** nothing is committed
 > **And** I'm shown the reviewer's note and the flow stops until I rule on it
 > **And** the same kind of concern about another group goes in the final report only
+> **And** a scenario the reviewer finds ambiguous never stops the flow (BUILD-031)
+
+### BUILD-031
+
+**Risk:** If an ambiguous scenario stops every run, I'm interrupted for wording I'd have accepted
+either way; if it's implemented silently, a reading I didn't choose ships as if I had.
+
+> **Given** the scenario read or a review round finds a chunk scenario that can be read more than
+>   one way
+> **When** the run continues
+> **Then** the reviewer names each reading and picks the simplest
+> **And** tdd (or the fixer, in a review round) implements that reading, unless a reading for that
+>   scenario was already built, in which case the built one stands and the new pick is only
+>   reported
+> **And** a reading found by the round that stops the run is reported, not built
+> **And** the final report lists the scenario, the readings, the reading built, who built it, and
+>   any later differing pick, next to the product values of BUILD-032
+> **And** the scenario doc is unchanged
 
 ### BUILD-020
 
@@ -203,16 +224,17 @@ all pass sits uncommitted until I write scenarios for a different problem.
 > **And** the scenario doc is unchanged
 > **And** the final report lists the suggestion for me to take to `/mikey:user-scenarios`
 
-### BUILD-022
+### BUILD-032
 
 **Risk:** If a subagent picks a product value no scenario sets and only mentions it in passing,
 the value ships as if I had chosen it.
 
 > **Given** tdd or a fixer had to choose a product value that no scenario or Decided note sets,
->   such as a time limit, a default or a message
+>   such as a time limit, a default or a message, or had to pick an interpretation of unclear
+>   wording that no reviewer had already resolved
 > **When** the chunk finishes, committed or stopped
-> **Then** the final report lists each such value with its file and line and the reason it was
->   chosen
+> **Then** the final report lists each such value or interpretation with its file and line and
+>   the reason it was chosen
 > **And** the value never stops the flow on its own
 
 ### BUILD-012
@@ -224,7 +246,7 @@ text and the final decisions get made by a session that has lost the start of th
 > **When** a round finishes
 > **Then** I see one line: the round number and the count of findings by severity
 > **And** the full findings of every round, each with its outcome, appear only in the final report
->   or at a stop (BUILD-010, BUILD-019)
+>   or at a stop (BUILD-010, BUILD-029)
 
 ## Cleaning comments
 
@@ -257,7 +279,7 @@ instead of checked, the next maintainer reads a hedge as a verified fact.
 **Risk:** If the chunk is committed on a red suite or a failing lint, or with a message that
 narrates the diff, the next reader gets a broken commit with no record of why the change was made.
 
-> **Given** comments are clean and no stop condition (BUILD-010, BUILD-019) applies
+> **Given** comments are clean and no stop condition (BUILD-010, BUILD-029) applies
 > **When** the chunk is committed
 > **Then** the project's test suite and its lint or static check both pass immediately before the
 >   commit
@@ -315,10 +337,11 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   below). The scenario read uses the adversarial reviewer, Opus at medium effort.
 - Decided November 12, 2026: always a new commit, never an amend. Squashing onto a rebase-chain
   base is done by hand.
-- Decided November 12, 2026: the flow runs the scenario read (BUILD-023) before tdd, and again
-  after each set of rulings (BUILD-024), then `/mikey:tdd` once per chunk; review rounds re-run
-  only the reviewer and the fixer. `/mikey:testify` runs once, after red-green and before the
-  first review round. `/mikey:comment-review` runs once, after the review loop.
+- Decided November 12, 2026: the flow runs the scenario read (BUILD-023, now BUILD-027) before tdd,
+  and again after each set of rulings (BUILD-024, now BUILD-028), then `/mikey:tdd` once per
+  chunk; review rounds re-run only the reviewer and the fixer. `/mikey:testify` runs once, after
+  red-green and before the first review round. `/mikey:comment-review` runs once, after the
+  review loop.
 - Decided November 12, 2026: changes to existing skills authorized for this flow:
   - `/mikey:tdd` gains `--auto` (no confirmation prompt) and its spec parser accepts the
     user-scenarios format: `> **Given**` blockquote lines, a `### BUILD-nnn`-style heading per
@@ -353,12 +376,42 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   because an inline skill has no way to return a report without printing it into the main
   session. Testify's own analysis agent therefore inherits that subagent's model.
 - Decided November 12, 2026, after the first Florence run: further skill changes authorized.
-  `/mikey:tdd` gains `--existing-work` and the tdd-agent an Existing work section (BUILD-021).
-  The adversarial reviewer gains a scenario-read mode (BUILD-023) and labels each concern as an
-  ambiguity or contradiction, or as a missing scenario or gap (BUILD-019, BUILD-020). The fixer
-  and the tdd-agent report the product values they chose (BUILD-022). `/mikey:build` invokes
-  `/mikey:user-scenarios` with the scenario read's concerns when I choose to rule on them, and
-  `/mikey:user-scenarios` takes such a list one concern at a time (BUILD-024).
+  `/mikey:tdd` gains `--existing-work` and the tdd-agent an Existing work section (BUILD-021). The
+  adversarial reviewer gains a scenario-read mode (BUILD-023, now BUILD-027) and labels each concern
+  by kind (BUILD-019, now BUILD-029; BUILD-020). The fixer and the tdd-agent report the product
+  values they chose (BUILD-022, now BUILD-032). `/mikey:build` invokes `/mikey:user-scenarios` with
+  the scenario read's concerns when I choose to rule on them, and `/mikey:user-scenarios` takes such
+  a list one concern at a time (BUILD-024, now BUILD-028).
+- Decided November 13, 2026: only a contradiction stops the run. BUILD-019, BUILD-023 and BUILD-024
+  stopped on "can be read more than one way" as well; they are deleted and replaced by BUILD-029,
+  BUILD-027 and BUILD-028, and BUILD-030 (now BUILD-031) adds the ambiguity rule: the reviewer names
+  the readings and picks the simplest, the implementer builds it, and the final report records it
+  beside the product values of BUILD-022 (now BUILD-032). The retired ids are never reused. Concern
+  kinds are now `contradiction` (stops), `ambiguity` (simplest reading, reported) and `missing-or-
+  gap` (reported). An unlabelled concern still counts as the stopping kind.
+- Decided November 13, 2026, after review of the contradiction-only change: the first reading
+  built for an ambiguous scenario stands. A later reviewer who picks a different reading has it
+  reported under that scenario in the final report, never rebuilt; review-round ambiguity
+  concerns reach the fixer only for scenarios with no reading built yet. A reading found by the
+  round that stops the run (BUILD-010) is reported, not built. A reading a fixer builds in a round
+  with no HIGH finding needs no extra review round: the fixer wrote the failing test first
+  (BUILD-008) and the report lists the reading.
+- Decided November 13, 2026, after review round 2 of the same change: BUILD-030 and BUILD-022
+  are retired and replaced by BUILD-031 (the reading rule with its two exceptions) and BUILD-032
+  (owner decisions include interpretations of unclear wording). When the reviewer can't tell
+  whether a scenario contradicts another or merely has two readings, the kind is `ambiguity`,
+  built as its simplest reading; only a concern with no label at all counts as a contradiction.
+  The readings file build hands to tdd lives outside the project tree.
+- Decided November 13, 2026, after review round 3 of the same change: the first built reading
+  stands across runs as well as within one. A passing covering test from an earlier run fixes the
+  reading; a new scenario read that picks differently has its pick reported, and tdd leaves the
+  tested behavior alone (BUILD-021). A built reading binds every fixer: a finding or an
+  interpretation that conflicts with a built reading is reported as a differing pick and never
+  applied, and an interpretation a subagent reports as an owner decision counts as a built reading.
+  "The round that stops the run" in BUILD-031 means the third round's HIGH stop (BUILD-010). A
+  contradiction involving any chunk scenario is a concern about the chunk, whichever group the
+  other scenario sits in. Review rounds after this one were waived for the change itself: the
+  round-3 fixes were committed without a fourth review, by decision.
 
 ## Parked
 

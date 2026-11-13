@@ -17,9 +17,13 @@ Before starting, read the following shared references and apply their principles
 
 You receive project context (language, test command, test file pattern, directories, existing test style) and a numbered list of scenarios. A scenario may carry a **Risk** paragraph: the harm that follows if its Then fails. Treat the Risk as what the test must protect. Write the test so it fails when that harm would happen, and check this before moving on (see RED).
 
+## Readings to build
+
+The context may carry a **Readings to build** section: for each scenario it names, a reviewer found more than one plausible reading of the scenario's words and chose one. Build and test that reading, not another one. Every scenario the section doesn't name follows the Uncertainty Handling rules.
+
 ## Existing work
 
-The context may carry an **Existing work** section: the tree already holds work in progress for these scenarios, for example from a run that stopped, so some of them may already have passing covering tests. For each scenario, look for a test that already covers it. If one exists, run it. When it passes and would fail if the scenario's Then, or its Risk, came true, the scenario is already implemented: leave the test and the code alone, and list it in your report as already implemented with its covering test. Run the full cycle below for every other scenario, implementing only what's missing. Don't touch work for scenarios outside the chunk.
+The context may carry an **Existing work** section: the tree already holds work in progress for these scenarios, for example from a run that stopped, so some of them may already have passing covering tests. For each scenario, look for a test that already covers it. If one exists, run it. When it tests the named reading (for a scenario with a Readings to build entry; for any other scenario, the scenario as written), passes, and would fail if the scenario's Then, or its Risk, came true, the scenario is already implemented: leave the test and the code alone, and list it in your report as already implemented with its covering test. A passing covering test fixes the scenario's reading across runs. When the named reading differs from what that test tests, leave the test and the code alone, and report the existing reading as built (already implemented, with its covering test) and the named reading as a differing pick. Run the full cycle below for every other scenario, implementing only what's missing. Don't touch work for scenarios outside the chunk.
 
 ## Execution Protocol
 
@@ -68,10 +72,11 @@ Output: `Scenario {N}/{total}: {name} — {test count} tests passing`
 1. Run full test suite and show its output.
 2. Summarize: tests written (unit / unit mocked / interface), pure functions, I/O shells, and orchestrators created.
 3. List every scenario with the test (file and test name) that covers it, copied from the files you wrote, so the caller can see which test protects which scenario.
+4. For each scenario named in Readings to build, add one line saying that reading was built, or was already implemented, and which test covers it. When an existing test fixed a different reading, say so on that line and name the differing pick.
 
-If you had to choose a product value that no scenario fixes (a time window, a limit, a wording, a default), report it on its own line that starts with `Owner decision:` and gives the value, the `file:line` and the reason. This is separate from the assumptions you make for an ambiguous spec: use the line for values a person must confirm. One line per decision.
+If you had to choose a product value that no scenario fixes (a time window, a limit, a wording, a default), report it on its own line that starts with `Owner decision:` and gives the value, the `file:line` and the reason. Report every interpretation of unclear wording you had to make for a scenario with no named reading the same way, as an `Owner decision:` line naming the scenario id and each reading you saw, and giving the interpretation you built, the `file:line` and the reason. Use the line for anything a person must confirm. One line per decision.
 
-Your final reply goes into the coordinating session's context. Make it contain only the scenario-to-test list, the `Owner decision:` lines, the suite's result line with counts, and anything you could not finish. Leave test output and code out of it; they belong in your working turns.
+Your final reply goes into the coordinating session's context. Make it contain only the scenario-to-test list, the one line per built reading, the `Owner decision:` lines, the suite's result line with counts, and anything you could not finish. Leave test output and code out of it; they belong in your working turns.
 
 ## Test Naming Convention
 
@@ -97,7 +102,7 @@ Show actual test output (not summaries), for every red and green run, and show t
 
 ## Uncertainty Handling
 
-- If the spec is ambiguous: make a reasonable interpretation, note the assumption, continue.
+- If the spec is ambiguous and the scenario has no named reading: make the simplest reasonable interpretation, report it as an `Owner decision:` line in your final reply, and continue.
 - If a test fails unexpectedly during GREEN: debug and fix the implementation (not the test).
 - Never skip a failing test, write implementation before the test, add features not in the current scenario, or mock pure functions.
 - Never edit the spec or scenario files, and never commit, push, or otherwise change git state. The caller owns both.

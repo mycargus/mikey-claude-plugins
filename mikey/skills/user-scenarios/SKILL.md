@@ -162,7 +162,7 @@ Good:
 ## Scenario review
 
 `/mikey:build` reads a group's scenarios before writing code, and its review rounds read them again
-once the code exists. Anything they find wrong with a scenario stops the run or lands in its
+once the code exists. A contradiction they find stops the run, and anything else lands in its
 report, often after hours of agent work. This review finds those problems while the user is still
 here to rule on them.
 
@@ -180,8 +180,9 @@ summary of what changed. Spawn a new one for every review; never continue an ear
 
 The plugin's `adversarial-reviewer` in scenario-read mode is not used here: it takes one group per
 spawn, and it has no checks for the doc's format rules or for the specific missing scenarios
-below. Checks 1 and 2 are the only two concerns build's scenario read stops a run on, so this
-review looks for the same things.
+below. Check 2 is the only concern build's scenario read stops a run on. Check 1 is worth
+finding here too: build would implement the simplest reading of those words, and this review lets
+the user pick the reading instead.
 
 **Applying findings.** Never apply a finding yourself. Print one line with the number of findings,
 then take them one scenario at a time as proposals under the workflow rules: explain the problem in

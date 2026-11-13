@@ -46,6 +46,22 @@ the rest of the doc, it stops the run on gaps another group already answers.
 > **And** if a chunk scenario can be read more than one way, or contradicts another scenario or
 >   the Decided section, nothing is implemented and I'm shown the reviewer's notes verbatim
 
+### BUILD-024
+
+**Risk:** If every scenario-read stop sends me off to `/mikey:user-scenarios` and back, each
+small ruling costs a full restart, and I stop running build on new groups.
+
+> **Given** the scenario read reported an ambiguity or contradiction in the chunk
+> **When** the run stops before any code is written
+> **Then** I'm asked whether to rule on the concerns now, stop, or continue anyway
+> **And** if I rule now, `/mikey:user-scenarios` takes the concerns one at a time, and every
+>   scenario change still needs my approval
+> **And** once I've ruled, the scenario read runs again on the changed doc before any code is
+>   written
+> **And** if I continue anyway, tdd implements the scenarios as written and the concerns stay
+>   open in the final report
+> **And** if I stop, nothing changes
+
 ### BUILD-021
 
 **Risk:** If a stopped run's uncommitted work blocks the next run, I have to commit half-finished
@@ -327,7 +343,9 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   `/mikey:tdd` gains `--existing-work` and the tdd-agent an Existing work section (BUILD-021).
   The adversarial reviewer gains a scenario-read mode (BUILD-023) and labels each concern as an
   ambiguity or contradiction, or as a missing scenario or gap (BUILD-019, BUILD-020). The fixer
-  and the tdd-agent report the product values they chose (BUILD-022).
+  and the tdd-agent report the product values they chose (BUILD-022). `/mikey:build` invokes
+  `/mikey:user-scenarios` with the scenario read's concerns when I choose to rule on them, and
+  `/mikey:user-scenarios` takes such a list one concern at a time (BUILD-024).
 
 ## Parked
 

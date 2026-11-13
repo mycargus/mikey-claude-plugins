@@ -7,9 +7,9 @@ user-invocable: true
 
 # Build
 
-Implements one `##` group of an approved user-scenarios doc. The scenarios are written and approved beforehand with `/mikey:user-scenarios`. This skill never proposes, edits, or reorders scenarios.
+Implements one `##` group of an approved user-scenarios doc. The scenarios are written and approved beforehand with `/mikey:user-scenarios`. This skill never proposes, edits, or reorders scenarios; when the user rules on scenario-read concerns, `/mikey:user-scenarios` does that under the user's approval (BUILD-024).
 
-Specification: `docs/user-scenarios/mikey-build.md` (BUILD-001 to BUILD-023). Design record: `docs/adr/adr-011-build-orchestrator.md`.
+Specification: `docs/user-scenarios/mikey-build.md` (BUILD-001 to BUILD-024). Design record: `docs/adr/adr-011-build-orchestrator.md`.
 
 | Parameter | Description |
 |-----------|-------------|
@@ -19,7 +19,7 @@ Specification: `docs/user-scenarios/mikey-build.md` (BUILD-001 to BUILD-023). De
 ## How the flow runs
 
 1. Locate the group and prepare (Phase 0). If the tree already has changes, ask whether to continue from them.
-2. A fresh reviewer reads the scenarios, with no code (Phase 1).
+2. A fresh reviewer reads the scenarios, with no code (Phase 1). On an ambiguity or contradiction, ask whether to rule on the concerns now, stop, or continue anyway.
 3. Implement with `/mikey:tdd` (Phase 2).
 4. A fixer subagent runs `/mikey:testify` on the touched files and applies its findings (Phase 3).
 5. Review rounds: a fresh reviewer, then a fresh fixer, up to three rounds (Phase 4).
@@ -47,14 +47,14 @@ Every reviewer and every fixer is a new spawn, and so is the scenario reader. Ne
 
 ## Rules for the main session
 
-- **Never edit a project file yourself**, not even a one-line fix. Source, test and doc changes come from subagents. The main session only coordinates: it reads the project's conventions and git state, invokes the skills, briefs subagents, reads their reports, runs the final test, lint and commit commands, and talks to the user.
+- **Never edit a project file yourself**, not even a one-line fix. Source, test and doc changes come from subagents. The main session only coordinates: it reads the project's conventions and git state, invokes the skills, briefs subagents, reads their reports, runs the final test, lint and commit commands, and talks to the user. The scenario doc is covered by the rule on it below.
 - **Brief with dynamic context only.** The protocols live in the agent files and in the skills you invoke (ADR-005). A brief carries the scenarios, paths, the base commit, commands and findings, and nothing else. Do not add instructions that restate a protocol, and never include your own opinion of the code.
 - **Copy, don't retype.** Scenario text, findings, file paths, test names and counts are copied from the doc, the subagents' reports and command output. Never recompose them from memory.
 - **Never push. Never amend.** Always a new commit.
-- **Never change the scenario doc.** A scenario you think is wrong goes to the user (BUILD-019, BUILD-020).
+- **Never change the scenario doc.** A scenario you think is wrong goes to the user (BUILD-019, BUILD-020). The one way the doc changes is `/mikey:user-scenarios` in Phase 1, when the user chooses to rule on the scenario read's concerns, and every change there needs the user's approval (BUILD-024). Outside that skill the main session never edits the doc, and no subagent ever does.
 - **Output is one line per step.** Print one line per step of the flow (start, scenario read, tdd, testify-and-fix, each review round, comment pass, gate, commit), plus the per-scenario lines when tdd returns, and nothing else except at a stop or in the final report.
 - **A stop is a stop.** When a rule below says the flow stops, print what it says, print the final report (Phase 7), and end your turn. Don't continue until the user says what to do.
-- Keep a running ledger in your context: each scenario with its covering test, every finding with its outcome per pass, scenario concerns (each with its kind), `Owner decision:` lines, whether the run continued from existing changes and the paths the user approved, unverified comment claims, and command results. The final report is built from it.
+- Keep a running ledger in your context: each scenario with its covering test, every finding with its outcome per pass, scenario concerns (each with its kind), the rulings made in Phase 1 and the Phase 1 concerns the user chose to continue past, `Owner decision:` lines, whether the run continued from existing changes and the paths the user approved, unverified comment claims, and command results. The final report is built from it.
 
 ## Phase 0: Locate the group and prepare
 
@@ -69,7 +69,13 @@ Every reviewer and every fixer is a new spawn, and so is the scenario reader. Ne
 
 Before any code is written, spawn one fresh `adversarial-reviewer` (`opus`, `medium`) in scenario-read mode with these sections and nothing else: a line saying this is scenario-read mode and that it judges only the chunk's scenarios; the chunk's scenarios verbatim with their Risk paragraphs; the group heading; and the scenario doc's absolute path, so it can read the whole doc, including the other groups and the Decided and Parked sections, as context. Don't give it a diff, a path to the code, or anything from an earlier run. It reads no code (BUILD-023).
 
-Add each concern in its reply to the scenario-concerns ledger with its kind, copied as written. Print one line: how many concerns of each kind. If it reports any `ambiguity-or-contradiction` concern for this group, stop before tdd: print each one verbatim, say the scenario doc is unchanged and no code was written and nothing is committed, print the final report and end your turn (BUILD-023). Concerns of kind `missing-or-gap` never stop the flow; they go in the final report (BUILD-020). When the run continued from existing changes, this phase still runs, against the current doc.
+Add each concern in its reply to the scenario-concerns ledger with its kind, copied as written. Print one line: how many concerns of each kind. Concerns of kind `missing-or-gap` never stop the flow; they go in the final report (BUILD-020). When the run continued from existing changes, this phase still runs, against the current doc.
+
+If it reports any `ambiguity-or-contradiction` concern for this group, no code is written yet. Print each one verbatim, then ask the user one question with the AskUserQuestion tool: rule on the concerns now, stop, or continue anyway (BUILD-023, BUILD-024).
+
+- **Rule now.** Invoke `/mikey:user-scenarios` with the Skill tool, `skill: "mikey:user-scenarios"`, with arguments: the scenario doc path, then the concerns verbatim as the things to rule on. That skill's own rules apply: one proposal at a time, and the user's approval for every change. When it returns, mark those concerns as ruled on in the ledger and record the rulings it reports. Re-read the doc and take the chunk again as in Phase 0 step 3, since the chunk's text may have changed and ids may have been retired. If the heading no longer matches a group, stop as in Phase 0 step 2. Then run this phase again with a fresh reader. The question can come again. From here on, every phase uses the current chunk text.
+- **Stop.** Say the scenario doc has no changes beyond any the user approved in this phase, no code was written and nothing is committed. Print the final report and end your turn.
+- **Continue anyway.** Record the concerns in the ledger as open concerns the user chose to continue past, and go on to Phase 2. tdd implements the scenarios as written. These concerns don't stop the commit in Phase 6.
 
 ## Phase 2: Implement
 
@@ -110,7 +116,7 @@ From its report, record the edit counts and each comment claim it could not veri
 
 ## Phase 6: Check and commit
 
-1. If any round or Phase 1 reported a concern of kind `ambiguity-or-contradiction` tagged with this chunk's own group heading: commit nothing. Print each such concern verbatim, with the round that raised it, and say the scenario doc is unchanged and the flow waits for the user's ruling. Print the final report and end your turn (BUILD-019). A concern tagged with any other group heading doesn't stop the flow; it goes in the final report only. A concern of kind `missing-or-gap` never stops the flow, whatever group it names (BUILD-020). Unfixed MEDIUM or LOW findings never stop the flow either (BUILD-009).
+1. If any round reported a concern of kind `ambiguity-or-contradiction` tagged with this chunk's own group heading: commit nothing. Print each such concern verbatim, with the round that raised it, and say the scenario doc is unchanged and the flow waits for the user's ruling. Print the final report and end your turn (BUILD-019). Phase 1 concerns never reach this step: the user ruled on them, or chose to continue past them (BUILD-024). A concern tagged with any other group heading doesn't stop the flow; it goes in the final report only. A concern of kind `missing-or-gap` never stops the flow, whatever group it names (BUILD-020). Unfixed MEDIUM or LOW findings never stop the flow either (BUILD-009).
 2. Run the test command, then the lint command if there is one. Run each command so that only its exit status and its last 20 or so lines reach this session (for example, pipe through `tail -n 20` and read the exit status of the command itself, such as with `set -o pipefail`). Show only the result lines and the counts. If either fails, commit nothing. Print the failing output's last lines, print the final report, and stop. (Both must pass immediately before the commit, BUILD-015.)
 3. Stage the chunk's files by explicit path, taken from `git status --porcelain --untracked-files=all`, which lists every file individually. The paths the user approved in Phase 0 count as the chunk's files. Never stage the scenario doc, generated artifacts (reports, plans the run created), and never use `git add -A` or `git add .`.
 4. Write the commit message:
@@ -127,12 +133,12 @@ From its report, record the edit counts and each comment claim it could not veri
 
 Print the report whether the flow committed or stopped (BUILD-017). Build it from the ledger. Don't retype: paths, test names and counts come from the subagents' reports and command output.
 
-1. **Outcome**: the commit subject and short hash, or the stop reason. If the run continued from existing changes, say so and list the paths the user approved in Phase 0.
-2. **Scenario read** (Phase 1): the concerns it reported with their kinds, or none.
+1. **Outcome**: the commit subject and short hash, or the stop reason. If the run continued from existing changes, say so and list the paths the user approved in Phase 0. If the user ruled on scenario-read concerns, or continued past them, say so.
+2. **Scenario read** (Phase 1): for each read, the concerns it reported with their kinds, or none. Then the rulings made through `/mikey:user-scenarios`, and the concerns the user chose to continue past, or none (BUILD-024).
 3. **Scenarios**: each scenario id in the chunk with the test that covers it.
 4. **Test-design review**: each testify finding with its outcome.
 5. **Review rounds**: for each round, every finding with its severity, `file:line` and outcome (fixed, could not fix and why, or left unfixed for a stopped round 3).
-6. **Scenario concerns**: each concern of kind `ambiguity-or-contradiction` verbatim with its group heading, marking which stopped the flow and which are about another group, or none.
+6. **Scenario concerns**: each concern of kind `ambiguity-or-contradiction` verbatim with its group heading, marking which stopped the flow, which the user ruled on, which the user continued past and which are about another group, or none.
 7. **Suggested scenarios and gaps**: each concern of kind `missing-or-gap` verbatim with its group heading, or none. These never stopped the flow and no fixer saw them.
 8. **Owner decisions**: each `Owner decision:` line from tdd and the fixers, copied as written with its value, `file:line` and reason, or none. These are product values no scenario or Decided note fixes, for you to confirm or change (BUILD-022).
 9. **Comment claims left for you**: each unverified claim with `file:line`, or none.
@@ -149,7 +155,7 @@ Print the final report at every stop except the unmatched-group stop and a stop 
 | Changes beyond the scenario doc, and the user chose to continue | No stop; the paths count as the chunk's files and the final report lists them (BUILD-021) |
 | No test command found | Pre-flight stop |
 | Directory isn't a usable git repository (or has no commits) | Pre-flight stop |
-| The scenario read reports an ambiguity or contradiction in this group | No code written, no commit, doc unchanged, concerns printed verbatim, user rules (BUILD-023) |
+| The scenario read reports an ambiguity or contradiction in this group | Concerns printed verbatim, no code written yet, and the user chooses: rule now (`/mikey:user-scenarios`, then a fresh read), stop (no commit, final report), or continue anyway (concerns stay open in the final report) (BUILD-023, BUILD-024) |
 | A subagent leaves the suite red | Mid-flow stop before the commit, output tail shown |
 | tdd leaves a scenario unfinished | Mid-flow stop before the commit, output tail shown |
 | A commit hook fails | Mid-flow stop, output tail shown |

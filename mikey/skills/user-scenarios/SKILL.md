@@ -188,6 +188,10 @@ the id, or a wording-only change. Offer approve, change, reject and park. A find
 goes in Parked with what was decided about it. A ruling that needs no scenario goes in Decided. A
 rejected finding is dropped.
 
+**Concerns from `/mikey:build`.** When invoked with the doc path and a list of concerns to rule on,
+skip the reviewer and take each concern as a finding under Applying findings, then report each
+ruling in one line and return.
+
 ### Review checklist
 
 This section is the reviewer's protocol. Read the whole doc, then for each scenario in the groups

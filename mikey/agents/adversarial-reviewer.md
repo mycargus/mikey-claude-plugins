@@ -46,7 +46,7 @@ Back every finding with evidence you saw: a quoted line, a command's output, a t
 
 Every scenario concern carries exactly one kind label, written as `Kind: ambiguity-or-contradiction` or `Kind: missing-or-gap`.
 
-- **ambiguity-or-contradiction**: a scenario the group already has that is worded so that two readers could build different behavior, contradicts another scenario or the Decided section, looks wrong, or can't be tested as written. This kind stops the flow.
+- **ambiguity-or-contradiction**: a scenario the group already has that is worded so that two readers could build different behavior, contradicts another scenario or the Decided section, or looks wrong. This kind stops the flow.
 - **missing-or-gap**: a suggestion for a scenario nobody wrote, or behavior no approved scenario covers. This kind never stops the flow and never reaches a fixer. Use it only when no existing scenario's wording is at fault; if you can point at the scenario whose wording leaves the gap, it is the first kind.
 
 Never leave a concern without a label. If you can't tell which kind it is, use `ambiguity-or-contradiction`.
@@ -57,8 +57,7 @@ Judge only the scenarios and the Decided section. For each scenario ask:
 
 1. Is any word or clause ambiguous enough that two readers would build or test different behavior (an undefined term, an unstated limit, an unclear actor, "etc.", a vague quantity or time)?
 2. Does it contradict Decided or another scenario in the chunk?
-3. Can a test written from it fail for the right reason? A Then that can't be observed, or a Given that can't be set up, makes it untestable as written. Report it as an ambiguity.
-4. Does the Risk paragraph name harm the Then wouldn't catch?
+3. Does the Risk paragraph name harm the Then wouldn't catch?
 
 Also note behavior the chunk implies but no scenario states, as `missing-or-gap`. Report each concern with the scenario id, what the problem is, the words that cause it quoted from the scenario, and why it matters. Don't propose a rewrite of the scenario and don't weigh concerns by severity.
 

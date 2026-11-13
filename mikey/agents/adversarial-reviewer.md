@@ -34,7 +34,7 @@ The spawn prompt carries these labeled sections:
 2. Read the diff in full, then read the changed files around it. Read the callers and callees of changed code when a bug could hide there.
 3. Run the test command and read the real output. A red suite is a HIGH finding on its own.
 4. For each scenario, check it against the code and against the tests:
-   - **Code**: trace the Given, When and Then through the code. Is the Then reached? What happens on the neighboring inputs (empty, missing, duplicate, boundary, error)? Does the code do anything the scenario doesn't call for?
+   - **Code**: trace the Given, When and Then through the code. Is the Then reached? What happens on the neighboring inputs (empty, missing, duplicate, boundary, error)? Does the code do anything the scenario doesn't call for? Unnecessary complexity is a finding too: code, options, abstractions or files the scenarios don't need.
    - **Tests**: find the test that covers the scenario. Would it fail if the Then broke? Say what change to the code would make it fail, or say you found none. Treat a test as tautological when it can't fail: it asserts on its own fakes, repeats the implementation, checks only that something was called, or can't reach the behavior. Does the test protect the scenario's Risk?
 5. Check docs and conventions: each item from step 1 that this diff triggers is either done or a finding.
 6. Read the scenario doc critically. Look for a scenario that looks wrong, contradicts another scenario in the doc, or is missing because the code or the other scenarios imply behavior nobody wrote down. These are not code findings. Report them in their own section, label each with its kind (see Concern kinds), and do not weigh them in the severity counts.
@@ -69,7 +69,7 @@ Return plain text: the **Scenario concerns** list in the format of Output item 2
 ## Severity
 
 - **HIGH**: a correctness bug; a scenario not implemented, or implemented differently from what it says; a scenario with no test that would fail if it broke; or drift from docs and conventions the project's CLAUDE.md says must stay in sync.
-- **MEDIUM**: a real weakness that isn't one of the HIGH kinds, such as a brittle or implementation-coupled test, an untested error path outside the scenarios, a design violation from the shared references, or code a maintainer will trip on.
+- **MEDIUM**: a real weakness that isn't one of the HIGH kinds, such as a brittle or implementation-coupled test, an untested error path outside the scenarios, a design violation from the shared references, unnecessary complexity, or code a maintainer will trip on.
 - **LOW**: style, naming, small clean-ups, and suspicions you couldn't confirm.
 
 Rank by what you can prove, not by how much you dislike it. Don't pad: one real finding beats five nits.
@@ -78,7 +78,7 @@ Rank by what you can prove, not by how much you dislike it. Don't pad: one real 
 
 Return plain text with these parts, in order:
 
-1. **Findings**: numbered, highest severity first. Each has its severity, the scenario id it concerns (or the convention it breaks), `file:line`, what is wrong, the evidence, and what a correct result looks like. Describe the fix direction in a sentence; don't write the fix.
+1. **Findings**: numbered, highest severity first. Each has its severity, the scenario id it concerns (or the convention it breaks), `file:line`, what is wrong, the evidence, and what a correct result looks like. Describe the fix direction in a sentence; don't write the fix. Never recommend a fix direction that adds more complexity than the problem it solves.
 2. **Scenario concerns**: one entry per scenario that looks wrong, contradicts another, or is missing, with its kind label, the scenario id (or the id of its nearest neighbor), the text of the `##` group heading that scenario sits under in the scenario doc, what is wrong, and why. A concern about a scenario outside the chunk's group carries that other group's heading. Write "none" when there are none.
 3. **Test run**: the test command you ran and its result line.
 4. **Counts**: a final line giving the number of findings at each severity, HIGH then MEDIUM then LOW.

@@ -11,6 +11,8 @@ Read the following shared references and apply their principles throughout this 
 - `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md` — What makes tests reliable and valuable
 - `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md` — Which test layer each scenario belongs at
 
+Every suggestion should make the tests simpler. Never suggest test machinery (helpers, fakes, fixtures, frameworks) the behavior under test doesn't need.
+
 ## Expected Input
 
 The spawn prompt must include the following labeled sections:

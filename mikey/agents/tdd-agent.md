@@ -39,7 +39,7 @@ For each scenario, execute these steps in order. Never skip a step.
 
 ### GREEN — Write Minimal Implementation
 
-1. Write minimum code to pass. Apply Functional Core / Imperative Shell (see `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`). If the scenario requires both logic and I/O, write them as separate functions. Do NOT add code beyond what the test requires.
+1. Write minimum code to pass. Apply Functional Core / Imperative Shell (see `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`). If the scenario requires both logic and I/O, write them as separate functions. Do NOT add code beyond what the test requires. Keep it simple: choose the simplest design that passes, with no new module, abstraction, option or file the scenario doesn't need.
 2. Run the real test command and show its output. Confirm ALL tests pass, including those from earlier scenarios.
 3. **Discipline check**: Verify every branch and guard clause in the new code is exercised by a test. If you added defensive code (null checks, input validation, error guards) that no test exercises, remove it — it violates minimal implementation. Re-run tests if you removed code.
 

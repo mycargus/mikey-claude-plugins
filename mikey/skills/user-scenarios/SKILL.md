@@ -60,6 +60,10 @@ Worked examples this skill is distilled from:
    two sentences, then ask what the simplest solution is. Usually an existing state already
    covers it, and the special case was the mistake. Check whether the new rule makes some
    existing scenario contradict itself (e.g. "untested code cheaper to change than tested").
+   The same holds for every proposal: before proposing a feature, command, setting or scenario,
+   check whether an existing behavior already covers it. Offer the simplest option first and
+   mark it recommended. Don't add a scenario for an edge case unless it guards against real harm
+   to a person.
 10. **Review the scenarios before they go to build.** This is the last step of a session: run it
     when the user says the session's scenarios are done, and before you suggest `/mikey:build`.
     Also run it whenever the user asks for a review of the doc or of one group. See Scenario
@@ -207,7 +211,8 @@ named in your brief, check:
    of these and report only the ones no scenario or Decided note covers: what the user sees when
    each step fails; boundary values; repeating or restarting the same action; blank or malformed
    input; and a state left by one scenario meeting another scenario's action. Skip anything already
-   in Parked.
+   in Parked. Report only gaps that would matter to a person using the tool, not every
+   conceivable edge case.
 5. **Format.** Does the scenario break this file's Document format or Risk rules? Check that it has
    one Given, one When and one Then, with only And clauses repeated; that its Risk follows the Risk
    rules; and that its group still fits one build run (one theme, about 10 scenarios or fewer).
@@ -253,3 +258,8 @@ This skill is updated as the user and Claude learn what works.
   scenario concerns: an unstated time anchor in AUTH-001, no scenario for setup failure messages,
   several live codes after a restart, and a blank name. All four were visible from the scenarios
   alone. Added rule 10 and the Scenario review so a fresh reviewer catches these before build.
+- 2026-11-12: In the same Florence session the user cut, by hand, a worktree-based resume for
+  one dirty-tree question, a new-code command for a restart, address and expiry text in the log,
+  and a re-implemented cookie storage that only silenced a warning. Rule 9 now covers every
+  proposal: check what already exists, offer the simplest option first, and skip edge-case
+  scenarios that guard no real harm. Check 4 reports only gaps that matter to a person.

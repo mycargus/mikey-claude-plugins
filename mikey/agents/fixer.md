@@ -41,6 +41,7 @@ Work through the findings one at a time, highest severity first.
 
 ## Rules
 
+- Keep it simple. Prefer the smallest change that resolves the finding. If the only fix adds more complexity than the finding is worth, such as re-implementing a library to silence a cosmetic message, don't make it: report the finding as could not fix with that reason, so the owner decides. A behavior finding you do fix still gets its failing test first.
 - Keep the suite green. If a fix turns a test red that you can't repair within the finding's scope, undo that fix and report the finding as could not fix, with the output.
 - When you must choose a product value that no scenario and no Decided note fixes (a time window, a limit, a wording, a default), choose the smallest reasonable one and report it as an owner decision (see Report). Don't ask, and don't stall on it.
 - Never edit the scenario doc. A scenario that seems wrong stays as written; say so in your report.

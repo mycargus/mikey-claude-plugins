@@ -44,7 +44,7 @@ See [mikey/skills/tdd/SKILL.md](mikey/skills/tdd/SKILL.md) for more information.
 
 ### /mikey:user-scenarios
 
-Write Given/When/Then user scenarios with Claude before any code exists. You decide the behavior; Claude proposes, asks, and records. Each scenario gets an id (`PREFIX-nnn`) under its own `###` heading, with a Risk paragraph, grouped under `##` headings.
+Write Given/When/Then user scenarios with Claude before any code exists. You decide the behavior; Claude proposes, asks, and records. Each scenario gets an id (`PREFIX-nnn`) under its own `###` heading, with a Risk paragraph, grouped under `##` headings. At the end of a session, or when you ask, a fresh subagent reviews the scenarios for two readings, contradictions, Risk mismatches, missing scenarios and format slips, and each finding comes back to you as a proposal, before `/mikey:build` would trip on it.
 
 Open claude and type `/mikey:user-scenarios` to start.
 

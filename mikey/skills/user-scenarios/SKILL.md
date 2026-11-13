@@ -64,8 +64,9 @@ Worked examples this skill is distilled from:
 ## Scenario ids
 
 Every scenario has an id of the form `PREFIX-nnn`: a short uppercase topical prefix chosen with
-the user (one word naming the tool, feature or area the scenarios cover), then a three-digit number that counts up through the doc.
-The id is the scenario's `###` heading, and the test that covers the scenario can carry the same id.
+the user (one word naming the tool, feature or area the scenarios cover), then a three-digit
+number that counts up through the doc. The id is the scenario's `###` heading, and the test that
+covers the scenario can carry the same id.
 
 - A **meaningful change** (different Given, When, or Then, or a different intent) retires the id.
   The new scenario gets the next unused number, and the old scenario is deleted.

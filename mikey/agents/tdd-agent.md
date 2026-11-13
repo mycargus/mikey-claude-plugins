@@ -17,6 +17,10 @@ Before starting, read the following shared references and apply their principles
 
 You receive project context (language, test command, test file pattern, directories, existing test style) and a numbered list of scenarios. A scenario may carry a **Risk** paragraph: the harm that follows if its Then fails. Treat the Risk as what the test must protect. Write the test so it fails when that harm would happen, and check this before moving on (see RED).
 
+## Existing work (resume)
+
+The context may carry an **Existing work** section: a stopped earlier run left changes in this tree. For each scenario, look for a test that already covers it. If one exists, run it. When it passes and would fail if the scenario's Then, or its Risk, came true, the scenario is already implemented: don't rewrite the test or the code, and list it in your report as already implemented with its covering test. Otherwise, and for every scenario the section names as new or changed, run the full cycle below. Don't touch work for scenarios outside the chunk.
+
 ## Execution Protocol
 
 For each scenario, execute these steps in order. Never skip a step.
@@ -65,7 +69,9 @@ Output: `Scenario {N}/{total}: {name} — {test count} tests passing`
 2. Summarize: tests written (unit / unit mocked / interface), pure functions, I/O shells, and orchestrators created.
 3. List every scenario with the test (file and test name) that covers it, copied from the files you wrote, so the caller can see which test protects which scenario.
 
-Your final reply goes into the coordinating session's context. Make it contain only the scenario-to-test list, the suite's result line with counts, and anything you could not finish. Leave test output and code out of it; they belong in your working turns.
+If you had to choose a product value that no scenario fixes (a time window, a limit, a wording, a default), report it on its own line that starts with `Owner decision:` and gives the value, the `file:line` and the reason. This is separate from the assumptions you make for an ambiguous spec: use the line for values a person must confirm. One line per decision.
+
+Your final reply goes into the coordinating session's context. Make it contain only the scenario-to-test list, the `Owner decision:` lines, the suite's result line with counts, and anything you could not finish. Leave test output and code out of it; they belong in your working turns.
 
 ## Test Naming Convention
 

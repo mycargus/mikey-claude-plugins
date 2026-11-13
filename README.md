@@ -60,7 +60,7 @@ See [mikey/skills/comment-review/SKILL.md](mikey/skills/comment-review/SKILL.md)
 
 ### /mikey:build
 
-Implement one approved group of scenarios end to end. The main session coordinates; subagents do the work: `/mikey:tdd` implements, a fixer subagent runs `/mikey:testify` and applies its findings, up to three rounds of a fresh adversarial reviewer and a fresh fixer follow, `/mikey:comment-review` cleans comments, and the chunk is committed (never pushed) once tests and lint pass.
+Implement one approved group of scenarios end to end. The main session coordinates; subagents do the work. The run happens in a git worktree on a work branch, so a stop leaves your checkout clean; re-run with `--resume` to continue it or `--discard` to drop it. A fresh reviewer reads the scenarios before any code is written, then `/mikey:tdd` implements, a fixer subagent runs `/mikey:testify` and applies its findings, up to three rounds of a fresh adversarial reviewer and a fresh fixer follow, `/mikey:comment-review` cleans comments, and the chunk is committed (never pushed) once tests and lint pass, then fast-forwarded or cherry-picked onto your branch.
 
 Flow order: write and approve scenarios with `/mikey:user-scenarios`, then run `/mikey:build <doc path> "<group heading>"` once per group.
 

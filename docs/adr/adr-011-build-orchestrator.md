@@ -13,17 +13,18 @@ The question was how to chain these steps so a chunk of scenarios goes from appr
 
 `/mikey:build` composes the existing skills under one orchestrating skill, and the main session only coordinates: it reads the project's conventions and git state, invokes the skills, briefs subagents, reads their reports, runs the final test, lint and commit commands, and talks to the user. The loop has this shape:
 
-1. `/mikey:tdd` runs once per chunk (a chunk is one `##` group of a user-scenarios doc), with `--auto`.
-2. One fixer subagent invokes `/mikey:testify --with-design --auto` on the touched files itself, then applies every finding of every severity and reports the findings with outcomes and the testify grade line.
-3. Review and fix, up to three rounds. Each round is a fresh `adversarial-reviewer` and then a fresh `fixer`.
-4. `/mikey:comment-review --apply` runs once, in a subagent.
-5. Tests and lint run, and the chunk is committed. Nothing is pushed or amended.
+1. A fresh `adversarial-reviewer` reads the chunk's scenarios and the doc's Decided section before any code exists. It reads no code.
+2. `/mikey:tdd` runs once per chunk (a chunk is one `##` group of a user-scenarios doc), with `--auto`.
+3. One fixer subagent invokes `/mikey:testify --with-design --auto` on the touched files itself, then applies every finding of every severity and reports the findings with outcomes and the testify grade line.
+4. Review and fix, up to three rounds. Each round is a fresh `adversarial-reviewer` and then a fresh `fixer`.
+5. `/mikey:comment-review --apply` runs once, in a subagent.
+6. Tests and lint run, and the chunk is committed. Nothing is pushed or amended.
 
-The exit rule: a round that reports no HIGH finding ends the loop once its findings are fixed. HIGH means a correctness bug, a scenario not implemented or implemented differently, a scenario with no test that would fail if it broke, or drift from docs and conventions the project says must stay in sync. Everything else is MEDIUM or LOW and gets fixed but never forces another round; one the fixer could not fix never blocks the loop or the commit and is listed in the final report. If round three still reports a HIGH finding, nothing is committed and the findings stay unfixed for the user. A reviewer that finds a scenario wrong or missing reports it separately; the doc is never edited. A concern about a scenario in the chunk's own group stops the flow before the commit; a concern about another group goes in the final report only.
+The exit rule: a round that reports no HIGH finding ends the loop once its findings are fixed. HIGH means a correctness bug, a scenario not implemented or implemented differently, a scenario with no test that would fail if it broke, or drift from docs and conventions the project says must stay in sync. Everything else is MEDIUM or LOW and gets fixed but never forces another round; one the fixer could not fix never blocks the loop or the commit and is listed in the final report. If round three still reports a HIGH finding, nothing is committed and the findings stay unfixed for the user. A reviewer that finds a scenario wrong or missing reports it separately, labelled with one of two kinds; the doc is never edited and no fixer sees it. Only an ambiguity or contradiction stops the flow: a scenario in the chunk's own group that can be read more than one way, or that contradicts another scenario or the Decided section. The scenario read stops before tdd on that kind; a review round stops before the commit. The same kind of concern about another group goes in the final report only. A suggestion for a missing scenario, or a gap no approved scenario covers, never stops the flow and goes in the final report. So do the product values tdd or a fixer had to choose because no scenario sets them.
 
-The flow also stops before the commit, showing the user the output tail, when a subagent leaves the suite red, when tdd leaves a scenario unfinished, or when a commit hook fails. Pre-flight stops (unmatched group, dirty tree, no test command or no git repository) end it before any work.
+The flow also stops before the commit, showing the user the output tail, when a subagent leaves the suite red, when tdd leaves a scenario unfinished, or when a commit hook fails. Pre-flight stops (unmatched group, no test command or no git repository) end it before any work. A tree with uncommitted changes other than the scenario doc doesn't stop the flow outright: the user is shown the paths and asked whether to continue from them or stop. On continue, tdd leaves alone scenarios that already have a passing covering test, and review, comment cleanup and the commit cover the earlier changes too.
 
-Models per role: implementer Sonnet at high effort, adversarial reviewer Opus at medium effort, fixer and comment reviewer Sonnet at low effort. Testify's analysis agent inherits the invoking fixer's model.
+Models per role: implementer Sonnet at high effort, adversarial reviewer Opus at medium effort, scenario reader (the adversarial reviewer in scenario-read mode) Opus at medium effort, fixer and comment reviewer Sonnet at low effort. Testify's analysis agent inherits the invoking fixer's model.
 
 The reviewer and fixer protocols live in `agents/*.md` system prompts (ADR-005), and the skill passes only dynamic context.
 
@@ -36,10 +37,10 @@ The reviewer and fixer protocols live in `agents/*.md` system prompts (ADR-005),
 ## Consequences
 
 **Positive:**
-- A chunk runs unattended from approved scenarios to a commit, and the user sees one line per round.
+- A chunk runs unattended from approved scenarios to a commit, and the user sees one line per round. The one question it asks up front comes when the tree already has uncommitted changes.
 - Each review is independent: it knows the scenarios, the diff and the project's conventions, and nothing about earlier rounds.
 - The main session's context stays small because it never reads diffs or full test output. It reads subagent reports, and it runs the final test and lint commands through `tail` so only the exit status and the last lines reach it, then the commit.
-- A wrong scenario can't pass silently: it stops the commit and goes to the user, and the doc is never changed without approval.
+- An ambiguous or contradictory scenario can't pass silently: it stops the run and goes to the user, and the doc is never changed without approval. Found by the scenario read, it stops the run before any code is written.
 
 **Negative:**
 - A fresh reviewer re-reads the whole chunk each round, so a three-round run costs three full reviews at Opus.

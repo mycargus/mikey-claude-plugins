@@ -32,6 +32,31 @@ guessed subset, hours of agent work land on the wrong scenarios.
 > **And** I'm shown the group headings the doc does have and told to pick one or write the missing
 >   group with `/mikey:user-scenarios`
 
+### BUILD-018
+
+**Risk:** If an ambiguous scenario is found only after the code is written, hours of agent work
+go into one reading before the run stops for my ruling anyway.
+
+> **Given** a chunk selected by BUILD-001
+> **When** the run starts, before any code is written
+> **Then** a fresh reviewer reads only the chunk's scenarios and the doc's Decided section
+> **And** if a scenario can be read more than one way or contradicts the Decided section, nothing
+>   is implemented and I'm shown the reviewer's notes verbatim
+
+### BUILD-021
+
+**Risk:** If a stopped run's uncommitted work blocks the next run, I have to commit half-finished
+work or stash it by hand before I can finish the chunk.
+
+> **Given** my working tree has uncommitted changes other than the scenario doc, such as a stopped
+>   run's work
+> **When** I run `/mikey:build` on a group
+> **Then** I'm shown the changed paths and asked whether to continue from them or stop
+> **And** if I stop, nothing runs and nothing changes
+> **And** if I continue, tdd leaves alone each scenario that already has a passing covering test
+> **And** review, comment cleanup and the commit cover all the changes, the earlier ones included
+> **And** the final report lists the paths I approved
+
 ## Implementing
 
 ### BUILD-003
@@ -131,20 +156,43 @@ wrong.
 >   say what to do
 > **And** the third round's findings are left unfixed, exactly as the reviewer wrote them
 
-### BUILD-011
+### BUILD-019
 
-**Risk:** If a reviewer who notices that a scenario itself is wrong or missing either fixes the
-scenario or stays quiet, I end up with either an unapproved spec change or a commit that
-faithfully implements a mistake.
+**Risk:** If a reviewer who notices that a scenario is wrong either fixes the scenario or stays
+quiet, I end up with an unapproved spec change or a commit that faithfully implements a mistake.
 
-> **Given** a review round reports that a scenario looks wrong, contradicts another, or that a
->   needed scenario is missing
+> **Given** a review round reports that a scenario in the chunk's own group can be read more than
+>   one way, or contradicts another scenario or the Decided section
 > **When** the chunk otherwise completes
 > **Then** the scenario doc is unchanged
 > **And** nothing is committed
-> **And** I'm shown the reviewer's note on the scenario and the flow stops until I rule on it
-> **And** only a concern about a scenario in the chunk's own group stops the flow; a concern about
->   another group goes in the final report only
+> **And** I'm shown the reviewer's note and the flow stops until I rule on it
+> **And** the same kind of concern about another group goes in the final report only
+
+### BUILD-020
+
+**Risk:** If a suggestion for a missing scenario stops the run, a chunk whose approved scenarios
+all pass sits uncommitted until I write scenarios for a different problem.
+
+> **Given** a review round suggests a scenario the doc is missing, or a gap no approved scenario
+>   covers
+> **When** the chunk otherwise completes
+> **Then** the suggestion doesn't stop the flow or the commit
+> **And** no fixer acts on it
+> **And** the scenario doc is unchanged
+> **And** the final report lists the suggestion for me to take to `/mikey:user-scenarios`
+
+### BUILD-022
+
+**Risk:** If a subagent picks a product value no scenario sets and only mentions it in passing,
+the value ships as if I had chosen it.
+
+> **Given** tdd or a fixer had to choose a product value that no scenario or Decided note sets,
+>   such as a time limit, a default or a message
+> **When** the chunk finishes, committed or stopped
+> **Then** the final report lists each such value with its file and line and the reason it was
+>   chosen
+> **And** the value never stops the flow on its own
 
 ### BUILD-012
 
@@ -155,7 +203,7 @@ text and the final decisions get made by a session that has lost the start of th
 > **When** a round finishes
 > **Then** I see one line: the round number and the count of findings by severity
 > **And** the full findings of every round, each with its outcome, appear only in the final report
->   or at a stop (BUILD-010, BUILD-011)
+>   or at a stop (BUILD-010, BUILD-019)
 
 ## Cleaning comments
 
@@ -188,7 +236,7 @@ instead of checked, the next maintainer reads a hedge as a verified fact.
 **Risk:** If the chunk is committed on a red suite or a failing lint, or with a message that
 narrates the diff, the next reader gets a broken commit with no record of why the change was made.
 
-> **Given** comments are clean and no stop condition (BUILD-010, BUILD-011) applies
+> **Given** comments are clean and no stop condition (BUILD-010, BUILD-019) applies
 > **When** the chunk is committed
 > **Then** the project's test suite and its lint or static check both pass immediately before the
 >   commit
@@ -232,12 +280,13 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
 - Decided November 12, 2026: models per role. Implementer Sonnet at high effort, adversarial
   reviewer Opus at medium effort, fixer and comment reviewer Sonnet at low effort. Testify's
   analysis agent inherits the model of the subagent that invokes testify (see the round 2 decision
-  below).
+  below). The scenario read uses the adversarial reviewer, Opus at medium effort.
 - Decided November 12, 2026: always a new commit, never an amend. Squashing onto a rebase-chain
   base is done by hand.
-- Decided November 12, 2026: the flow runs `/mikey:tdd` once per chunk; review rounds re-run only
-  the reviewer and the fixer. `/mikey:testify` runs once, after red-green and before the first
-  review round. `/mikey:comment-review` runs once, after the review loop.
+- Decided November 12, 2026: the flow runs the scenario read (BUILD-018) once, then `/mikey:tdd`
+  once per chunk; review rounds re-run only the reviewer and the fixer. `/mikey:testify` runs
+  once, after red-green and before the first review round. `/mikey:comment-review` runs once,
+  after the review loop.
 - Decided November 12, 2026: changes to existing skills authorized for this flow:
   - `/mikey:tdd` gains `--auto` (no confirmation prompt) and its spec parser accepts the
     user-scenarios format: `> **Given**` blockquote lines, a `### BUILD-nnn`-style heading per
@@ -260,9 +309,9 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   The moved skills keep the extra guidance the writer added (flow order, worked example, group
   sizing, argument hint) and the em-dash rewrites. The user-level copies of `user-scenarios` and
   `comment-review` were deleted the same day.
-- Decided November 12, 2026: three pre-flight stops need no scenario. `/mikey:build` stops before
-  doing anything when the working tree has uncommitted changes other than the scenario doc, when
-  no test command can be found, or when the directory isn't a git repository.
+- Decided November 12, 2026: two pre-flight stops need no scenario. `/mikey:build` stops before
+  doing anything when no test command can be found, or when the directory isn't a git
+  repository. A tree with uncommitted changes asks first instead (BUILD-021).
 - Decided November 12, 2026, after review round 2: three mid-flow stops need no scenario and
   also gate the commit in BUILD-015. The flow stops before the commit, showing me the output
   tail, when a subagent leaves the test suite red, when `/mikey:tdd` leaves a scenario
@@ -271,6 +320,11 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   Sonnet low subagent invokes it with `--with-design --auto --files`, then applies the findings),
   because an inline skill has no way to return a report without printing it into the main
   session. Testify's own analysis agent therefore inherits that subagent's model.
+- Decided November 12, 2026, after the first Florence run: further skill changes authorized.
+  `/mikey:tdd` gains `--existing-work` and the tdd-agent an Existing work section (BUILD-021).
+  The adversarial reviewer gains a scenario-read mode (BUILD-018) and labels each concern as an
+  ambiguity or contradiction, or as a missing scenario or gap (BUILD-019, BUILD-020). The fixer
+  and the tdd-agent report the product values they chose (BUILD-022).
 
 ## Parked
 

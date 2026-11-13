@@ -32,16 +32,19 @@ guessed subset, hours of agent work land on the wrong scenarios.
 > **And** I'm shown the group headings the doc does have and told to pick one or write the missing
 >   group with `/mikey:user-scenarios`
 
-### BUILD-018
+### BUILD-023
 
 **Risk:** If an ambiguous scenario is found only after the code is written, hours of agent work
-go into one reading before the run stops for my ruling anyway.
+go into one reading before the run stops for my ruling anyway. If the reader can't see
+the rest of the doc, it stops the run on gaps another group already answers.
 
 > **Given** a chunk selected by BUILD-001
 > **When** the run starts, before any code is written
-> **Then** a fresh reviewer reads only the chunk's scenarios and the doc's Decided section
-> **And** if a scenario can be read more than one way or contradicts the Decided section, nothing
->   is implemented and I'm shown the reviewer's notes verbatim
+> **Then** a fresh reviewer reads the whole scenario doc and no code
+> **And** it judges only the chunk's scenarios, using the other groups and the Decided section
+>   as context
+> **And** if a chunk scenario can be read more than one way, or contradicts another scenario or
+>   the Decided section, nothing is implemented and I'm shown the reviewer's notes verbatim
 
 ### BUILD-021
 
@@ -283,7 +286,7 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   below). The scenario read uses the adversarial reviewer, Opus at medium effort.
 - Decided November 12, 2026: always a new commit, never an amend. Squashing onto a rebase-chain
   base is done by hand.
-- Decided November 12, 2026: the flow runs the scenario read (BUILD-018) once, then `/mikey:tdd`
+- Decided November 12, 2026: the flow runs the scenario read (BUILD-023) once, then `/mikey:tdd`
   once per chunk; review rounds re-run only the reviewer and the fixer. `/mikey:testify` runs
   once, after red-green and before the first review round. `/mikey:comment-review` runs once,
   after the review loop.
@@ -322,7 +325,7 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   session. Testify's own analysis agent therefore inherits that subagent's model.
 - Decided November 12, 2026, after the first Florence run: further skill changes authorized.
   `/mikey:tdd` gains `--existing-work` and the tdd-agent an Existing work section (BUILD-021).
-  The adversarial reviewer gains a scenario-read mode (BUILD-018) and labels each concern as an
+  The adversarial reviewer gains a scenario-read mode (BUILD-023) and labels each concern as an
   ambiguity or contradiction, or as a missing scenario or gap (BUILD-019, BUILD-020). The fixer
   and the tdd-agent report the product values they chose (BUILD-022).
 

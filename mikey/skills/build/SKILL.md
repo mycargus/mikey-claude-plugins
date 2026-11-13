@@ -9,7 +9,7 @@ user-invocable: true
 
 Implements one `##` group of an approved user-scenarios doc. The scenarios are written and approved beforehand with `/mikey:user-scenarios`. This skill never proposes, edits, or reorders scenarios.
 
-Specification: `docs/user-scenarios/mikey-build.md` (BUILD-001 to BUILD-022). Design record: `docs/adr/adr-011-build-orchestrator.md`.
+Specification: `docs/user-scenarios/mikey-build.md` (BUILD-001 to BUILD-023). Design record: `docs/adr/adr-011-build-orchestrator.md`.
 
 | Parameter | Description |
 |-----------|-------------|
@@ -67,9 +67,9 @@ Every reviewer and every fixer is a new spawn, and so is the scenario reader. Ne
 
 ## Phase 1: Read the scenarios
 
-Before any code is written, spawn one fresh `adversarial-reviewer` (`opus`, `medium`) in scenario-read mode with these sections and nothing else: the chunk's scenarios verbatim with their Risk paragraphs, and the doc's Decided section copied verbatim (every `##` section whose heading starts with Decided; say there is none if the doc has none). Don't give it a diff, a path to the code, or anything from an earlier run. It reads no code (BUILD-018).
+Before any code is written, spawn one fresh `adversarial-reviewer` (`opus`, `medium`) in scenario-read mode with these sections and nothing else: a line saying this is scenario-read mode and that it judges only the chunk's scenarios; the chunk's scenarios verbatim with their Risk paragraphs; the group heading; and the scenario doc's absolute path, so it can read the whole doc, including the other groups and the Decided and Parked sections, as context. Don't give it a diff, a path to the code, or anything from an earlier run. It reads no code (BUILD-023).
 
-Add each concern in its reply to the scenario-concerns ledger with its kind, copied as written. Print one line: how many concerns of each kind. If it reports any `ambiguity-or-contradiction` concern for this group, stop before tdd: print each one verbatim, say the scenario doc is unchanged and no code was written and nothing is committed, print the final report and end your turn (BUILD-018). Concerns of kind `missing-or-gap` never stop the flow; they go in the final report (BUILD-020). When the run continued from existing changes, this phase still runs, against the current doc.
+Add each concern in its reply to the scenario-concerns ledger with its kind, copied as written. Print one line: how many concerns of each kind. If it reports any `ambiguity-or-contradiction` concern for this group, stop before tdd: print each one verbatim, say the scenario doc is unchanged and no code was written and nothing is committed, print the final report and end your turn (BUILD-023). Concerns of kind `missing-or-gap` never stop the flow; they go in the final report (BUILD-020). When the run continued from existing changes, this phase still runs, against the current doc.
 
 ## Phase 2: Implement
 
@@ -149,7 +149,7 @@ Print the final report at every stop except the unmatched-group stop and a stop 
 | Changes beyond the scenario doc, and the user chose to continue | No stop; the paths count as the chunk's files and the final report lists them (BUILD-021) |
 | No test command found | Pre-flight stop |
 | Directory isn't a usable git repository (or has no commits) | Pre-flight stop |
-| The scenario read reports an ambiguity or contradiction in this group | No code written, no commit, doc unchanged, concerns printed verbatim, user rules (BUILD-018) |
+| The scenario read reports an ambiguity or contradiction in this group | No code written, no commit, doc unchanged, concerns printed verbatim, user rules (BUILD-023) |
 | A subagent leaves the suite red | Mid-flow stop before the commit, output tail shown |
 | tdd leaves a scenario unfinished | Mid-flow stop before the commit, output tail shown |
 | A commit hook fails | Mid-flow stop, output tail shown |

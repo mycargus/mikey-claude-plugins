@@ -16,8 +16,8 @@ user-invocable: true
 Write Given/When/Then scenarios with the user before any code exists. The user decides what the
 tool should do. You propose, ask, and record. You never invent behavior.
 
-Flow order: write and approve scenarios here, then run `/mikey:build <doc> "<group heading>"` once
-per `##` group.
+Flow order: write and approve scenarios here, run the scenario review (workflow step 10), then run
+`/mikey:build <doc> "<group heading>"` once per `##` group.
 
 Worked examples this skill is distilled from:
 - `docs/user-scenarios/mikey-build.md` in this plugin's repo (one file, `###` heading per scenario,
@@ -60,6 +60,10 @@ Worked examples this skill is distilled from:
    two sentences, then ask what the simplest solution is. Usually an existing state already
    covers it, and the special case was the mistake. Check whether the new rule makes some
    existing scenario contradict itself (e.g. "untested code cheaper to change than tested").
+10. **Review the scenarios before they go to build.** This is the last step of a session: run it
+    when the user says the session's scenarios are done, and before you suggest `/mikey:build`.
+    Also run it whenever the user asks for a review of the doc or of one group. See Scenario
+    review below.
 
 ## Scenario ids
 
@@ -151,6 +155,64 @@ Good:
 > If completed modules are re-tested on every run, each run repeats hours of finished work before
 > reaching anything new. Developers stop running the skill on large codebases.
 
+## Scenario review
+
+`/mikey:build` reads a group's scenarios before writing code, and its review rounds read them again
+once the code exists. Anything they find wrong with a scenario stops the run or lands in its
+report, often after hours of agent work. This review finds those problems while the user is still
+here to rule on them.
+
+**Scope.** At the end of a session, review every group where a scenario was added, changed or
+removed this session. When the user names a group, review that group. When the user asks for a
+review of the doc, review every group.
+
+**Reviewer.** Spawn one fresh `general-purpose` subagent with model `opus` and effort `medium`, the
+same model and effort `/mikey:build` uses for its scenario read. A reviewer that didn't write the
+scenarios isn't anchored on the reasoning behind them. The brief carries only the doc's path, the
+group headings to review, and the path of this file
+(`${CLAUDE_PLUGIN_ROOT}/skills/user-scenarios/SKILL.md`) with an instruction to follow its Review
+checklist section. Never add your own view of the scenarios, the session's discussion, or a
+summary of what changed. Spawn a new one for every review; never continue an earlier one.
+
+The plugin's `adversarial-reviewer` in scenario-read mode is not used here: it takes one group per
+spawn, and it has no checks for the doc's format rules or for the specific missing scenarios
+below. Checks 1 and 2 are the only two concerns build's scenario read stops a run on, so this
+review looks for the same things.
+
+**Applying findings.** Never apply a finding yourself. Print one line with the number of findings,
+then take them one scenario at a time as proposals under the workflow rules: explain the problem in
+plain language (rule 7), quote the scenario in full (rule 8), and ask through AskUserQuestion with
+the full scenario text in each option's preview (rule 2). A finding about two readings offers the
+readings as options (rule 3). Every proposal says whether it's a meaningful change, which retires
+the id, or a wording-only change. Offer approve, change, reject and park. A finding the user parks
+goes in Parked with what was decided about it. A ruling that needs no scenario goes in Decided. A
+rejected finding is dropped.
+
+### Review checklist
+
+This section is the reviewer's protocol. Read the whole doc, then for each scenario in the groups
+named in your brief, check:
+
+1. **Two readings.** Could two readers build or test different behavior from the same words? Look
+   hardest at a time, count or limit with no stated anchor or boundary: when a period starts, what
+   it is counted from, and whether the boundary value itself is in or out.
+2. **Contradiction.** Does the scenario contradict another scenario in the doc, in any group, or
+   the Decided section?
+3. **Risk mismatch.** Does the Risk paragraph name a harm the Then wouldn't catch if it failed?
+4. **Missing scenarios.** What do the approved scenarios imply that nobody wrote down? Check each
+   of these and report only the ones no scenario or Decided note covers: what the user sees when
+   each step fails; boundary values; repeating or restarting the same action; blank or malformed
+   input; and a state left by one scenario meeting another scenario's action. Skip anything already
+   in Parked.
+5. **Format.** Does the scenario break this file's Document format or Risk rules? Check that it has
+   one Given, one When and one Then, with only And clauses repeated; that its Risk follows the Risk
+   rules; and that its group still fits one build run (one theme, about 10 scenarios or fewer).
+
+For each finding, report the scenario id (or the id of its nearest neighbor for a missing
+scenario), the group heading, the check number, the words that cause it quoted from the doc, and
+why it matters to the person using the tool. Don't write replacement scenarios. Don't rank
+findings. Write "none" when there are none. Never edit, create or delete files.
+
 ## Lessons
 
 This skill is updated as the user and Claude learn what works.
@@ -183,3 +245,7 @@ This skill is updated as the user and Claude learn what works.
   approve?" at the end of the message. The user wants every proposal and decision to go through
   AskUserQuestion with the scenario text in the option preview; earlier the same day a scenario
   printed before a tool call was never seen at all. Rules 2 and 3 now require the tool.
+- 2026-11-12: The first Florence build run stopped after all the code was written, on four
+  scenario concerns: an unstated time anchor in AUTH-001, no scenario for setup failure messages,
+  several live codes after a restart, and a blank name. All four were visible from the scenarios
+  alone. Added rule 10 and the Scenario review so a fresh reviewer catches these before build.

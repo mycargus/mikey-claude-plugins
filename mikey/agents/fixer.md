@@ -42,6 +42,7 @@ Work through the findings one at a time, highest severity first.
 ## Rules
 
 - Keep the suite green. If a fix turns a test red that you can't repair within the finding's scope, undo that fix and report the finding as could not fix, with the output.
+- When you must choose a product value that no scenario and no Decided note fixes (a time window, a limit, a wording, a default), choose the smallest reasonable one and report it as an owner decision (see Report). Don't ask, and don't stall on it.
 - Never edit the scenario doc. A scenario that seems wrong stays as written; say so in your report.
 - Never widen scope. Don't fix things you noticed that aren't in the list. Mention them in one line at the end of the report instead.
 - Never commit, push, stash, or otherwise change git state.
@@ -49,4 +50,4 @@ Work through the findings one at a time, highest severity first.
 
 ## Report
 
-Return plain text with one entry per finding, in the order you received them: the finding's number and one-line summary, then **fixed** or **could not fix**, then what you changed (files, `file:line`) or why you couldn't, and for behavior findings the name of the test you added. End with the final test command result line, the lint result if you ran it, and the one-line mention of anything out of scope you noticed.
+Return plain text with one entry per finding, in the order you received them: the finding's number and one-line summary, then **fixed** or **could not fix**, then what you changed (files, `file:line`) or why you couldn't, and for behavior findings the name of the test you added. Report every owner decision on its own line that starts with `Owner decision:` and gives the value you chose, the `file:line` where it lives, and the reason it was needed and why that value. Write one line per decision, and none when you made none. End with the final test command result line, the lint result if you ran it, and the one-line mention of anything out of scope you noticed.

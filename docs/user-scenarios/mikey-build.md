@@ -44,7 +44,8 @@ the rest of the doc, it stops the run on gaps another group already answers.
 > **And** it judges only the chunk's scenarios, using the other groups and the Decided section
 >   as context
 > **And** if a chunk scenario can be read more than one way, or contradicts another scenario or
->   the Decided section, nothing is implemented and I'm shown the reviewer's notes verbatim
+>   the Decided section, nothing is implemented yet, I'm shown the reviewer's notes verbatim, and
+>   BUILD-024 decides what happens next
 
 ### BUILD-024
 
@@ -91,14 +92,15 @@ unattended.
 > **And** I see one line per scenario, printed when tdd returns, plus one line per step of the
 >   flow, nothing more
 
-### BUILD-004
+### BUILD-025
 
 **Risk:** If the main session writes code itself, its context fills with diffs and test output,
 and later review rounds are judged by a session already anchored on the implementer's reasoning.
 
 > **Given** `/mikey:build` is running
 > **When** any source, test or doc file changes
-> **Then** a subagent made the change
+> **Then** a subagent made the change, except scenario doc edits I approve through
+>   `/mikey:user-scenarios` at a scenario-read stop (BUILD-024)
 > **And** the main session only coordinates: it reads the project's conventions and git state,
 >   invokes the skills, briefs subagents, reads their reports, runs the final test, lint and
 >   commit commands, and talks to me
@@ -302,10 +304,10 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   below). The scenario read uses the adversarial reviewer, Opus at medium effort.
 - Decided November 12, 2026: always a new commit, never an amend. Squashing onto a rebase-chain
   base is done by hand.
-- Decided November 12, 2026: the flow runs the scenario read (BUILD-023) once, then `/mikey:tdd`
-  once per chunk; review rounds re-run only the reviewer and the fixer. `/mikey:testify` runs
-  once, after red-green and before the first review round. `/mikey:comment-review` runs once,
-  after the review loop.
+- Decided November 12, 2026: the flow runs the scenario read (BUILD-023) before tdd, and again
+  after each set of rulings (BUILD-024), then `/mikey:tdd` once per chunk; review rounds re-run
+  only the reviewer and the fixer. `/mikey:testify` runs once, after red-green and before the
+  first review round. `/mikey:comment-review` runs once, after the review loop.
 - Decided November 12, 2026: changes to existing skills authorized for this flow:
   - `/mikey:tdd` gains `--auto` (no confirmation prompt) and its spec parser accepts the
     user-scenarios format: `> **Given**` blockquote lines, a `### BUILD-nnn`-style heading per

@@ -13,7 +13,7 @@ The question was how to chain these steps so a chunk of scenarios goes from appr
 
 `/mikey:build` composes the existing skills under one orchestrating skill, and the main session only coordinates: it reads the project's conventions and git state, invokes the skills, briefs subagents, reads their reports, runs the final test, lint and commit commands, and talks to the user. The loop has this shape:
 
-1. A fresh `adversarial-reviewer` reads the chunk's scenarios and the doc's Decided section before any code exists. It reads no code, and it stops the run only on a scenario that can be read more than one way or that contradicts another scenario or the Decided section.
+1. A fresh `adversarial-reviewer` reads the whole scenario doc before any code exists, so the other groups and the Decided and Parked sections serve as context, but it judges only the chunk's scenarios. A gap another group or section already covers is dropped. It reads no code, and it stops the run only on a chunk scenario that can be read more than one way or that contradicts another scenario, in any group, or the Decided section.
 2. `/mikey:tdd` runs once per chunk (a chunk is one `##` group of a user-scenarios doc), with `--auto`.
 3. One fixer subagent invokes `/mikey:testify --with-design --auto` on the touched files itself, then applies every finding of every severity and reports the findings with outcomes and the testify grade line.
 4. Review and fix, up to three rounds. Each round is a fresh `adversarial-reviewer` and then a fresh `fixer`.

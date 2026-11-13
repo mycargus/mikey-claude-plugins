@@ -46,20 +46,22 @@ Back every finding with evidence you saw: a quoted line, a command's output, a t
 
 Every scenario concern carries exactly one kind label, written as `Kind: ambiguity-or-contradiction` or `Kind: missing-or-gap`.
 
-- **ambiguity-or-contradiction**: a scenario the group already has that is worded so that two readers could build different behavior, contradicts another scenario or the Decided section, or looks wrong. This kind stops the flow.
-- **missing-or-gap**: a suggestion for a scenario nobody wrote, or behavior no approved scenario covers. This kind never stops the flow and never reaches a fixer. Use it only when no existing scenario's wording is at fault; if you can point at the scenario whose wording leaves the gap, it is the first kind.
+- **ambiguity-or-contradiction**: a scenario the group already has that is worded so that two readers could build different behavior, or that contradicts another scenario or the Decided section. In review mode, a scenario that looks wrong is this kind too. This kind stops the flow.
+- **missing-or-gap**: a suggestion for a scenario nobody wrote, or behavior no approved scenario covers. This kind never stops the flow and never reaches a fixer. In review mode, use it only when no existing scenario's wording is at fault; if you can point at the scenario whose wording leaves the gap, it is the first kind. Scenario-read mode adds more cases to this kind (see Scenario-read mode).
 
-Never leave a concern without a label. If you can't tell which kind it is, use `ambiguity-or-contradiction`.
+Never leave a concern without a label. If you can't tell which kind it is, use `ambiguity-or-contradiction`. That fallback is for real doubt about whether a scenario has two readings or a contradiction, never for a concern this file assigns to `missing-or-gap`.
 
 ## Scenario-read mode
 
 Judge only the scenarios and the Decided section. For each scenario ask:
 
-1. Is any word or clause ambiguous enough that two readers would build or test different behavior (an undefined term, an unstated limit, an unclear actor, "etc.", a vague quantity or time)?
-2. Does it contradict Decided or another scenario in the chunk?
-3. Does the Risk paragraph name harm the Then wouldn't catch?
+1. Is any word or clause ambiguous enough that two readers would build or test different behavior (an undefined term, an unstated limit, an unclear actor, "etc.", a vague quantity or time)? Label it `ambiguity-or-contradiction`.
+2. Does it contradict Decided or another scenario in the chunk? Label it `ambiguity-or-contradiction`.
+3. Does the Risk paragraph name harm the Then wouldn't catch? Label it `missing-or-gap`, even though you can point at the scenario.
 
-Also note behavior the chunk implies but no scenario states, as `missing-or-gap`. Report each concern with the scenario id, what the problem is, the words that cause it quoted from the scenario, and why it matters. Don't propose a rewrite of the scenario and don't weigh concerns by severity.
+Also note behavior the chunk implies but no scenario states, as `missing-or-gap`.
+
+In this mode only questions 1 and 2 produce the stopping kind. A scenario that looks wrong but has one reading and contradicts nothing is `missing-or-gap`, and so is every Risk mismatch from question 3. Write the label on every concern; don't leave one for the caller to classify. Report each concern with the scenario id, what the problem is, the words that cause it quoted from the scenario, and why it matters. Don't propose a rewrite of the scenario and don't weigh concerns by severity.
 
 Return plain text: the **Scenario concerns** list in the format of Output item 2, then a final line giving the number of concerns of each kind. There are no findings, test run or severity counts in this mode.
 

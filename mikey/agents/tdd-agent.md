@@ -17,9 +17,9 @@ Before starting, read the following shared references and apply their principles
 
 You receive project context (language, test command, test file pattern, directories, existing test style) and a numbered list of scenarios. A scenario may carry a **Risk** paragraph: the harm that follows if its Then fails. Treat the Risk as what the test must protect. Write the test so it fails when that harm would happen, and check this before moving on (see RED).
 
-## Existing work (resume)
+## Existing work
 
-The context may carry an **Existing work** section: a stopped earlier run left changes in this tree. For each scenario, look for a test that already covers it. If one exists, run it. When it passes and would fail if the scenario's Then, or its Risk, came true, the scenario is already implemented: don't rewrite the test or the code, and list it in your report as already implemented with its covering test. Otherwise, and for every scenario the section names as new or changed, run the full cycle below. Don't touch work for scenarios outside the chunk.
+The context may carry an **Existing work** section: the tree already holds work in progress for these scenarios, for example from a run that stopped, so some of them may already have passing covering tests. For each scenario, look for a test that already covers it. If one exists, run it. When it passes and would fail if the scenario's Then, or its Risk, came true, the scenario is already implemented: leave the test and the code alone, and list it in your report as already implemented with its covering test. Run the full cycle below for every other scenario, implementing only what's missing. Don't touch work for scenarios outside the chunk.
 
 ## Execution Protocol
 

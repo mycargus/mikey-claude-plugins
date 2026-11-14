@@ -3,6 +3,8 @@
 **Status:** Accepted
 **Date:** 2026-03-20
 
+**Amended 2026-11-14:** the VALIDATE step and the validate flag below are historical; the tdd-agent no longer has either. The spawn prompt now carries project context and, under `--group`, the scenario doc path and group heading (see ADR-011).
+
 ## Context
 
 The tdd-agent executes a strict Red-Green-Refactor cycle across multiple scenarios. The execution protocol (~200 lines covering RED, GREEN, REFACTOR, VALIDATE steps, test naming conventions, and code design rules) needs to be followed consistently across all scenarios in a single agent run.

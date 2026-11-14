@@ -95,8 +95,8 @@ A continuation line of a clause starts with `>` and indentation instead of a key
    - Strip the leading `>` and the `**` around the keyword, so `> **Given** x` reads as `Given x`. Remove nothing else: the clause text reaches the tdd-agent unchanged. `**And**` continues the clause before it.
    - The `###` heading text is the scenario name.
    - Sections with no Given/When/Then lines (`## Decided, no scenario needed`, `## Parked`, intro prose) contain no scenarios and are skipped.
-7. **Risk paragraph.** A `**Risk:**` paragraph (from the `**Risk:**` marker to the next blank line or the blockquote) belongs to the scenario that follows it. Keep it with that scenario and pass it to the tdd-agent verbatim as the reason the scenario matters. Never drop it, and never fold it into the Given/When/Then text.
-8. **`--group "<heading>"`.** Keep only the scenarios between the matching `##` heading and the next `##` heading (or the end of the file). The match ignores surrounding whitespace and letter case. If no `##` heading matches, or the matched heading has no scenarios (a matched heading with no scenarios counts as missing), stop and list the `##` headings that contain scenarios.
+7. **Risk paragraph.** A `**Risk:**` paragraph (from the `**Risk:**` marker to the next blank line or the blockquote) belongs to the scenario that follows it. Keep it with that scenario. Where the tdd-agent reads a doc group itself (`--group`), it reads the Risk there; for other formats, include it verbatim under its scenario in the brief as the reason the scenario matters, with the clause text passed unchanged (never paraphrased, shortened or reordered). Never drop it, and never fold it into the Given/When/Then text.
+8. **`--group "<heading>"`.** Keep only the scenarios between the matching `##` heading and the next `##` heading (or the end of the file). The match is exact after stripping surrounding whitespace and a leading `## `; letter case counts. If no `##` heading matches, or the matched heading has no scenarios (a matched heading with no scenarios counts as missing), stop and list the `##` headings that contain scenarios.
 
 ## Writing Good Specs
 

@@ -127,9 +127,6 @@ Starting TDD loop...
 ━━━ Complete ━━━
 
 All 4 scenarios implemented. 4/4 tests passing.
-
-Running /mikey:testify for verification...
-[testify output would appear here]
 ```
 
 ## Example: Interactive Mode
@@ -169,6 +166,4 @@ Next behavior? (or "done" to finish):
 > done
 
 Session complete. 1 scenario implemented, 1/1 tests passing.
-
-Note: testify skill not found. Verify the mikey plugin is fully installed for automatic test quality verification.
 ```

@@ -1,7 +1,7 @@
 ---
 name: mikey:tdd
 description: "TDD workflow driven by Given/When/Then specifications. Provide a spec file or folder path for autonomous batch processing, or run without a path for an interactive TDD loop. Implements code using Functional Core / Imperative Shell design principles."
-argument-hint: '[path] [--plan] [--export] [--auto] [--group "<heading>"] [--existing-work] [--readings-file <path>] [--test-command "<cmd>"] [--model <model>] [--effort <effort>]'
+argument-hint: '[path] [--plan] [--export] [--auto] [--group "<heading>"] [--existing-work] [--test-command "<cmd>"] [--lint-command "<cmd>"] [--model <model>] [--effort <effort>]'
 user-invocable: true
 ---
 
@@ -17,8 +17,8 @@ user-invocable: true
 | `--auto` | Agent mode only: skip the confirmation prompt and implement every parsed scenario |
 | `--group "<heading>"` | Agent mode only: implement only the scenarios under that `##` heading of the spec file |
 | `--existing-work` | Agent mode only: the tree already holds work in progress for these scenarios; passed to the tdd-agent |
-| `--readings-file <path>` | Agent mode only: a file holding the reading to build for each scenario that has more than one, one line per scenario with its id and the chosen reading text only; its contents are passed to the tdd-agent |
 | `--test-command "<cmd>"` | Use this test command instead of detecting one; passed to the tdd-agent |
+| `--lint-command "<cmd>"` | A check-only lint command; passed to the tdd-agent, which leaves it passing |
 | `--model <model>` | Model for the tdd-agent spawn (default: inherit the session's model) |
 | `--effort <effort>` | Effort for the tdd-agent spawn (default: the session's effort) |
 
@@ -33,13 +33,13 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
 **This skill always applies:**
 1. Red-Green-Refactor TDD cycle for every scenario
 2. Test philosophy: observable behavior, RITE tests, 5 Questions
-3. Functional Core / Imperative Shell code design — pure logic separated from I/O
-4. Minimal implementation — only write code required by the current test
+3. Functional Core / Imperative Shell code design: pure logic separated from I/O
+4. Minimal implementation: only write code required by the current test
 
 **Shared references:**
-- `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md` — How to structure code for testability
-- `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md` — What makes tests reliable and valuable
-- `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md` — Which test layer each scenario belongs at
+- `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`: How to structure code for testability
+- `${CLAUDE_PLUGIN_ROOT}/references/test-quality.md`: What makes tests reliable and valuable
+- `${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`: Which test layer each scenario belongs at
 
 **Spec format reference:** See Embedded References below.
 
@@ -48,14 +48,14 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
 ### Phase 1: Setup
 
 1. **Parse arguments** to extract:
-   - Target path (optional — file or folder of spec files)
+   - Target path (optional: file or folder of spec files)
    - `--plan` flag (plan only, do not implement)
    - `--export` flag (save report)
    - `--auto` flag (agent mode: no confirmation prompt)
    - `--group "<heading>"` (agent mode: only the scenarios under that `##` heading; requires `path` to be a single file)
    - `--existing-work` (agent mode: some scenarios may already have passing covering tests)
-   - `--readings-file <path>` (agent mode: read the file; it holds the chosen reading for each scenario that has more than one, and its contents are passed to the tdd-agent verbatim)
    - `--test-command "<cmd>"` (overrides test runner detection; passed to the tdd-agent as the test command)
+   - `--lint-command "<cmd>"` (passed to the tdd-agent as the lint command; absent means none)
    - `--model` and `--effort` values (passed to the tdd-agent spawn; absent means the spawn inherits the session's model and effort)
 
 2. **Detect project conventions** by examining project files:
@@ -75,7 +75,7 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
    - Test directory: {path or "TBD"}
    - Source directory: {path or "TBD"}
    ```
-   In interactive mode or when directories can't be determined yet, show what's known and note the rest as "TBD — will determine from first scenario."
+   In interactive mode or when directories can't be determined yet, show what's known and note the rest as "TBD, will determine from first scenario."
 
 4. **Route to mode**:
    - If `path` is provided → **Agent Mode** (Phase 2A)
@@ -90,7 +90,7 @@ Test-Driven Development workflow guided by Given/When/Then specifications and th
 3. Apply the Spec Format from Embedded References below
 4. Parse Given/When/Then scenarios from the files using those parsing rules, keeping each scenario's `**Risk:**` paragraph with it (see "Risk paragraph" in the spec format)
 5. Group scenarios by feature/file
-6. If `--group` is set, keep only the scenarios under the `##` heading whose text matches the given heading (surrounding whitespace and letter case ignored). If no `##` heading matches, or the matched heading has no scenarios, or `path` is not a single file, stop before implementing anything and list the `##` headings that contain scenarios, so the caller can correct the argument.
+6. If `--group` is set, keep only the scenarios under the `##` heading whose text matches the given heading (the match rule in `references/spec-format.md`: exact after stripping surrounding whitespace and a leading `## `; letter case counts). If no `##` heading matches, or the matched heading has no scenarios, or `path` is not a single file, stop before implementing anything and list the `##` headings that contain scenarios, so the caller can correct the argument.
 
 #### Step 2: Present Plan
 
@@ -126,14 +126,13 @@ Spawn a `tdd-agent` with the following context:
 
 1. **Project context** (detected in Phase 1):
    - Language/framework
-   - Test runner command
+   - Test runner command, and the lint command when the caller gave one
    - Test file pattern
    - Source directory
    - Test directory
    - Existing test style conventions (assertion library, naming, structure)
-2. **Scenarios**: The selected scenarios, formatted as numbered Given/When/Then blocks. The clause text reaches the agent unchanged: remove only the leading `>` and the `**` markers around the keywords, and never paraphrase, shorten or reorder it. When a scenario has a Risk paragraph, include it verbatim under its block, labelled as the reason the scenario matters.
+2. **Scenarios**: Under `--group`, a **Scenario doc** section with the doc's absolute path and the group heading, and nothing else about the scenarios: the tdd-agent reads the group itself, ids and Risk paragraphs included, and the text is never copied or paraphrased into the spawn. For the other spec formats (gherkin, markdown lists, plain text), where there is no doc group to point at, pass the parsed scenarios as numbered Given/When/Then blocks. The clause text reaches the agent unchanged: never paraphrase, shorten or reorder it. Put any Risk paragraph under its block, verbatim, labelled as the reason the scenario matters.
 3. **Existing work**: only when `--existing-work` is set, a section with that heading saying the tree already holds work in progress for these scenarios.
-4. **Readings to build**: only when `--readings-file` is set, a section with that heading holding the file's contents verbatim. A file that is missing or empty means no readings: leave the section out and, under `--auto`, add a one-line notice saying so at the top of the returned report.
 
 If `--model` or `--effort` was given, pass them as the Agent tool's `model` and `effort` parameters for this spawn. Otherwise pass neither.
 
@@ -142,7 +141,7 @@ Wait for agent completion.
 #### Step 4: Post-Completion
 
 After the agent completes:
-1. Show final test suite results. With `--auto`, print nothing: hand the agent's report back to the caller verbatim, who owns all progress output. The report includes the scenario-to-test list, the one line per built reading, the `Owner decision:` lines, the suite result with counts, and anything unfinished.
+1. Show final test suite results. With `--auto`, print nothing: hand the agent's report back to the caller verbatim, who owns all progress output. The report includes the scenario-to-test list, the `Owner decision:` lines, the suite result with counts, the lint result line when a lint command was given, and anything unfinished.
 2. If `--export`: write report (see Export section)
 
 ### Phase 2B: Interactive Mode (no spec path)
@@ -172,7 +171,7 @@ Use AskUserQuestion to get the user's input.
 2. If the user provided a plain description instead of GWT, convert it to Given/When/Then format and confirm with the user
 3. Identify what needs to be tested and where the test/source files should go
 
-#### Step 3: RED — Write Failing Test
+#### Step 3: RED: Write Failing Test
 
 1. Apply the test philosophy principles
 2. Write a test that describes the expected behavior:
@@ -185,20 +184,20 @@ Use AskUserQuestion to get the user's input.
    - I/O or user-facing behavior → **interface test** (the default)
    - Inter-service data format validation → **contract test**
    - Requires real external services → **E2E test**
-4. Run the test suite — show the failure output
+4. Run the test suite and show the failure output
 5. Confirm the test is failing for the right reason
 
-#### Step 4: GREEN — Write Minimal Implementation
+#### Step 4: GREEN: Write Minimal Implementation
 
 1. Write the **minimum** code to make the test pass
 2. **Apply Functional Core / Imperative Shell** (see `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`). If the scenario involves both logic and I/O, write them as separate functions.
 3. Do NOT add code beyond what the test requires
-4. Run the test suite — show all tests passing
-5. **Discipline check**: Verify every branch and guard clause in the new code is exercised by a test. If you added defensive code (null checks, input validation, error guards) that no test exercises, remove it — it violates minimal implementation. Re-run tests if you removed code.
+4. Run the test suite and show all tests passing
+5. **Discipline check**: Verify every branch and guard clause in the new code is exercised by a test. If you added defensive code (null checks, input validation, error guards) that no test exercises, remove it; it violates minimal implementation. Re-run tests if you removed code.
 
 #### Step 5: REFACTOR
 
-1. **Classify** each function written or modified as Pure, I/O, or Orchestrator (see `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`). Any function that mixes data transformation with I/O is a Violation — extract the pure logic.
+1. **Classify** each function written or modified as Pure, I/O, or Orchestrator (see `${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`). Any function that mixes data transformation with I/O is a Violation: extract the pure logic.
 2. **Review** for:
    - **Duplication** → extract if genuinely duplicated
    - **Naming clarity** → functions and variables express intent
@@ -212,7 +211,7 @@ After completing the cycle, ask the user:
 
 Use AskUserQuestion:
 - "Describe the next behavior"
-- "Done — finish session"
+- "Done: finish session"
 
 If "next behavior": return to Step 1.
 If "done": proceed to Post-Completion.
@@ -259,10 +258,10 @@ When `--export` is set, write a session report to `sdd-report-<timestamp>.md` us
 
 The shared references define these principles in full. They are **not optional**:
 
-- **Functional Core / Imperative Shell** — Always separate pure logic from I/O (`${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`)
-- **Test layer placement** — Interface tests are the default for I/O; unit tests for pure functions only (`${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`)
-- **Test quality** — RITE tests, observable behavior, never mock pure functions (`${CLAUDE_PLUGIN_ROOT}/references/test-quality.md`)
-- **Minimal implementation** — Only write code the current test demands. Do not anticipate future scenarios. Keep it simple: choose the simplest design that passes, with no new module, abstraction, option or file the scenario doesn't need.
+- **Functional Core / Imperative Shell**: Always separate pure logic from I/O (`${CLAUDE_PLUGIN_ROOT}/references/code-testability.md`)
+- **Test layer placement**: Interface tests are the default for I/O; unit tests for pure functions only (`${CLAUDE_PLUGIN_ROOT}/references/test-pyramid.md`)
+- **Test quality**: RITE tests, observable behavior, never mock pure functions (`${CLAUDE_PLUGIN_ROOT}/references/test-quality.md`)
+- **Minimal implementation**: Only write code the current test demands. Do not anticipate future scenarios. Keep it simple: choose the simplest design that passes, with no new module, abstraction, option or file the scenario doesn't need.
 
 ## Uncertainty Handling
 
@@ -272,7 +271,7 @@ The shared references define these principles in full. They are **not optional**
 
 **If the test fails unexpectedly during GREEN:**
 - Debug the failure
-- Fix the implementation (not the test — the test defines the desired behavior)
+- Fix the implementation (not the test; the test defines the desired behavior)
 - If the test itself was wrong, explain why and ask the user before changing it (under `--auto`, report the wrong test in the final reply instead)
 
 **Never:**
@@ -280,7 +279,7 @@ The shared references define these principles in full. They are **not optional**
 - Write implementation before the test
 - Add features not described in the current scenario
 - Mock pure functions
-- Fabricate test results — always run the actual test command and show output
+- Fabricate test results: always run the actual test command and show output
 
 
 ## Important Notes

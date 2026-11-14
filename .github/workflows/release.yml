@@ -3,7 +3,8 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      - "mikey-v*"
+      - "git-guardrails-v*"
 
 permissions:
   contents: write
@@ -14,7 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check the tag matches the plugin version
+        run: |
+          plugin="${GITHUB_REF_NAME%-v*}"
+          tag_version="${GITHUB_REF_NAME##*-v}"
+          file_version=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['version'])" "$plugin/.claude-plugin/plugin.json")
+          if [ "$tag_version" != "$file_version" ]; then
+            echo "Tag version $tag_version does not match $plugin/.claude-plugin/plugin.json ($file_version)" >&2
+            exit 1
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ github.ref_name }}
           generate_release_notes: false

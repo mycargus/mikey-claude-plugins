@@ -4,7 +4,7 @@ My personal Claude Code plugin collection.
 
 ## Prerequisites
 
-- [Claude Code CLI](https://https://code.claude.com/docs/en/setup)
+- [Claude Code CLI](https://code.claude.com/docs/en/setup)
 
 ## Installation
 
@@ -18,15 +18,11 @@ claude plugin install git-guardrails@mikey-claude-plugins
 
 ## Plugins
 
-### git-guardrails
+### mikey
 
-Blocks Claude Code from running a specific list of destructive git commands: `git push --force`, `git reset --hard`, `git branch -D`, `git clean -f`, and `git checkout .`. These commands can discard uncommitted or unpushed work with no undo, so this plugin denies them at the `PreToolUse` hook layer before they ever run. If you actually want to run one of these, run it yourself from your terminal; the hook only blocks Claude, not you.
+Skills for test philosophy, spec-driven TDD, scenario writing, comment cleanup, and a chunk build loop. Agents and a read-allow hook ship with it.
 
-**Not a complete safeguard**: it's a narrow regex tripwire on these five commands, not a general defense against Claude (or anyone else) losing work through other git commands, non-git destructive actions, or non-Bash tool calls. See [git-guardrails/README.md](git-guardrails/README.md#limitations) for the full list of what it doesn't cover.
-
-## Skills
-
-### /mikey:testify
+#### /mikey:testify
 
 Review and align tests with test philosophy. Identifies code design issues, implementation detail testing, excessive mocking, and negative test coverage gaps, then suggests improvements. Use `--plan` to generate a saved implementation plan without bloating the current context.
 
@@ -34,7 +30,7 @@ Open claude and type `/mikey:testify` to see optional parameters.
 
 See [mikey/skills/testify/SKILL.md](mikey/skills/testify/SKILL.md) for more information.
 
-### /mikey:tdd
+#### /mikey:tdd
 
 TDD workflow driven by Given/When/Then specifications. Provide a spec file or folder path for autonomous batch processing, or run interactively for one-at-a-time TDD loops. Applies Functional Core / Imperative Shell design principles.
 
@@ -42,7 +38,7 @@ Open claude and type `/mikey:tdd` to see optional parameters.
 
 See [mikey/skills/tdd/SKILL.md](mikey/skills/tdd/SKILL.md) for more information.
 
-### /mikey:user-scenarios
+#### /mikey:user-scenarios
 
 Write Given/When/Then user scenarios with Claude before any code exists. You decide the behavior; Claude proposes, asks, and records. Each scenario gets an id (`PREFIX-nnn`) under its own `###` heading, with a Risk paragraph, grouped under `##` headings. At the end of a session, or when you ask, a fresh subagent reviews the scenarios for two readings, contradictions, Risk mismatches, missing scenarios and format slips, and each finding comes back to you as a proposal, before `/mikey:build` would trip on it.
 
@@ -50,7 +46,7 @@ Open claude and type `/mikey:user-scenarios` to start.
 
 See [mikey/skills/user-scenarios/SKILL.md](mikey/skills/user-scenarios/SKILL.md) for more information.
 
-### /mikey:comment-review
+#### /mikey:comment-review
 
 Apply one standard to code comments: explain why, concisely, to a maintainer reading the code as it is now. Never history, never what the code does. Factual claims about tools, flags, or APIs are verified or flagged, never softened. Proposes edits and waits by default; `--apply` classifies and edits without waiting, and reports claims it can't verify.
 
@@ -58,7 +54,7 @@ Open claude and type `/mikey:comment-review` to see optional parameters.
 
 See [mikey/skills/comment-review/SKILL.md](mikey/skills/comment-review/SKILL.md) for more information.
 
-### /mikey:build
+#### /mikey:build
 
 Implement one approved group of scenarios end to end. The main session coordinates; subagents do the work. If the scenario doc has uncommitted edits, it commits them first as a separate commit. If your tree already has other changes, such as from a run that stopped, it asks whether to continue from them or stop. Build trusts the scenario doc: it reads no scenarios before coding, because the scenario review in `/mikey:user-scenarios` is the pre-code gate. `/mikey:tdd` implements, then up to three review rounds run: a roster of fresh reviewers in parallel (`adversarial-reviewer` and `test-design-reviewer`) writes findings to files outside the project tree, and one `fixer` applies the merged findings. The loop ends when no reviewer reports a HIGH finding. A scenario concern a reviewer raises never stops the run or changes the doc; it is listed in the final report, next to the product values and readings the implementer and fixers chose. `/mikey:comment-review` then cleans comments, and the chunk is committed (never pushed) once tests and lint pass.
 
@@ -68,18 +64,26 @@ Open claude and type `/mikey:build` to see the arguments.
 
 See [mikey/skills/build/SKILL.md](mikey/skills/build/SKILL.md) for more information, and [docs/user-scenarios/mikey-build.md](docs/user-scenarios/mikey-build.md) for the scenarios it implements.
 
+### git-guardrails
+
+Blocks Claude Code from running a specific list of destructive git commands: `git push --force`, `git reset --hard`, `git branch -D`, `git clean -f`, and `git checkout .`. These commands can discard uncommitted or unpushed work with no undo, so this plugin denies them at the `PreToolUse` hook layer before they ever run. If you actually want to run one of these, run it yourself from your terminal; the hook only blocks Claude, not you.
+
+**Not a complete safeguard**: it's a narrow regex tripwire on these five commands, not a general defense against Claude (or anyone else) losing work through other git commands, non-git destructive actions, or non-Bash tool calls. See [git-guardrails/README.md](git-guardrails/README.md#limitations) for the full list of what it doesn't cover.
+
 ## Development
 
 ### Local dev workflow
 
+Replace `<plugin>` with `mikey` or `git-guardrails`.
+
 1. **Uninstall** the marketplace version to avoid conflicts:
    ```bash
-   claude plugin uninstall mikey@mikey-claude-plugins
+   claude plugin uninstall <plugin>@mikey-claude-plugins
    ```
 
 2. **Load the local version** inline when starting Claude Code:
    ```bash
-   claude --plugin-dir /path/to/mikey-claude-plugins/mikey
+   claude --plugin-dir /path/to/mikey-claude-plugins/<plugin>
    ```
 
 3. **Iterate**: edit skill/agent/hook files, then reload within the session:
@@ -89,20 +93,22 @@ See [mikey/skills/build/SKILL.md](mikey/skills/build/SKILL.md) for more informat
 
 4. **Reinstall** from the marketplace when done:
    ```bash
-   claude plugin install mikey@mikey-claude-plugins
+   claude plugin install <plugin>@mikey-claude-plugins
    ```
 
 ## Releasing
 
-1. Update `plugin.json` version
+Each plugin releases on its own, with a tag named `<plugin>-vX.Y.Z` (`mikey-v…` or `git-guardrails-v…`).
+
+1. Update `version` in the plugin's `.claude-plugin/plugin.json`
 2. Commit changes
 3. Create an annotated tag and push:
    ```bash
-   git tag -a vX.Y.Z -m "summary of changes"
-   git push origin main vX.Y.Z
+   git tag -a <plugin>-vX.Y.Z -m "summary of changes"
+   git push origin main <plugin>-vX.Y.Z
    ```
 
-The [release workflow](.github/workflows/release.yml) automatically creates a GitHub release from the tag.
+The [release workflow](.github/workflows/release.yml) creates a GitHub release from the tag. It fails if the tag version doesn't match the plugin's `plugin.json`. Tags before `mikey-v0.11.0` used the plain `vX.Y.Z` form and were all `mikey` releases.
 
 ## License
 

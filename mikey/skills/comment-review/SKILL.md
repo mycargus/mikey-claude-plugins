@@ -38,15 +38,15 @@ A comment exists to explain **why** the code is the way it is, to a new maintain
    the line below. (Test bodies may say what a scenario exercises; that is the test's contract.)
 4. **Concise.** The fewest words that carry the constraint.
 
-Forward-looking warnings are wanted: "without this, `PROJECT_UPLOAD_EXCLUDES` is unset and the
-guard sizes the whole tree" tells a maintainer what breaks if they change it, which is about the
+Forward-looking warnings are wanted: "without this, `EXCLUDE_PATTERNS` is unset and the size
+guard walks the whole tree" tells a maintainer what breaks if they change it, which is about the
 code today.
 
 Keep the substance, drop the narrative. Example:
 
 - rejected: "Sets an array rather than echoing a string: the caller used to word-split an unquoted
   substitution, which drops names containing whitespace."
-- accepted: "Sets an array so the caller can expand it quoted as `\"${UPL_TAR_EXCLUDES[@]}\"`.
+- accepted: "Sets an array so the caller can expand it quoted as `\"${EXCLUDE_PATTERNS[@]}\"`.
   Exclude names containing whitespace survive that; word-splitting an unquoted string does not."
 
 Other rejected phrasings: "the caller *used to*"; "which *used to be*"; "They *used to carry*", etc.

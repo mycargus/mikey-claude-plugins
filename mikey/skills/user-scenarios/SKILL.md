@@ -19,11 +19,9 @@ tool should do. You propose, ask, and record. You never invent behavior.
 Flow order: write and approve scenarios here, run the scenario review (workflow step 10), then run
 `/mikey:build <doc> "<group heading>"` once per `##` group.
 
-Worked examples this skill is distilled from:
+Worked example this skill is distilled from:
 - `docs/user-scenarios/mikey-build.md` in this plugin's repo (one file, `###` heading per scenario,
   ids, Decided and Parked sections).
-- `tools/mutt/docs/user-scenarios/` in the Perf_test_tools repo (a README index plus one file per
-  user journey).
 
 ## Workflow
 
@@ -255,12 +253,11 @@ This skill is updated as the user and Claude learn what works.
   approve?" at the end of the message. The user wants every proposal and decision to go through
   AskUserQuestion with the scenario text in the option preview; earlier the same day a scenario
   printed before a tool call was never seen at all. Rules 2 and 3 now require the tool.
-- 2026-11-12: The first Florence build run stopped after all the code was written, on four
-  scenario concerns: an unstated time anchor in AUTH-001, no scenario for setup failure messages,
-  several live codes after a restart, and a blank name. All four were visible from the scenarios
-  alone. Added rule 10 and the Scenario review so a fresh reviewer catches these before build.
-- 2026-11-12: In the same Florence session the user cut, by hand, a worktree-based resume for
-  one dirty-tree question, a new-code command for a restart, address and expiry text in the log,
-  and a re-implemented cookie storage that only silenced a warning. Rule 9 now covers every
-  proposal: check what already exists, offer the simplest option first, and skip edge-case
-  scenarios that guard no real harm. Check 4 reports only gaps that matter to a person.
+- 2026-11-12: The first live `/mikey:build` run stopped after all the code was written, on four
+  scenario concerns (a two-readings clause, a missing scenario, and two contradictions). All four
+  were visible from the scenarios alone. Added rule 10 and the Scenario review so a fresh reviewer
+  catches these before build.
+- 2026-11-12: In the same session the user cut, by hand, several approved scenarios that guarded
+  edge cases with no real harm, or re-implemented something the project already had. Rule 9 now
+  covers every proposal: check what already exists, offer the simplest option first, and skip
+  edge-case scenarios that guard no real harm. Check 4 reports only gaps that matter to a person.

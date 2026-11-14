@@ -22,7 +22,7 @@ Option B -- consolidate into one plugin. Skills are invoked as `/mikey:testify` 
 **Positive:**
 - Shared reference files (philosophy, analysis prompt) are co-located and versioned atomically.
 - Single plugin.json registers all agents and hooks -- no duplication.
-- The tdd skill can invoke testify directly via `--validate` without cross-plugin dependencies.
+- The tdd skill can invoke testify directly without cross-plugin dependencies. (Historical: as of 2026-11-14 tdd no longer invokes testify.)
 - One version number to track.
 
 **Negative:**

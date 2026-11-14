@@ -159,28 +159,26 @@ Good:
 
 ## Scenario review
 
-`/mikey:build` reads a group's scenarios before writing code, and its review rounds read them again
-once the code exists. A contradiction they find stops the run, and anything else lands in its
-report, often after hours of agent work. This review finds those problems while the user is still
-here to rule on them.
+This review is the only check of the scenarios before code is written. `/mikey:build` trusts the
+doc: it reads no scenarios before it implements, and its review rounds only report a scenario
+concern in the final report, after hours of agent work, without changing the doc or stopping. A
+contradiction, a clause with two readings or a Risk the Then wouldn't catch that gets past this
+review is built as written. This review finds those problems while the user is still here to rule
+on them.
 
 **Scope.** At the end of a session, review every group where a scenario was added, changed or
 removed this session. When the user names a group, review that group. When the user asks for a
 review of the doc, review every group.
 
-**Reviewer.** Spawn one fresh `general-purpose` subagent with model `opus` and effort `medium`, the
-same model and effort `/mikey:build` uses for its scenario read. A reviewer that didn't write the
-scenarios isn't anchored on the reasoning behind them. The brief carries only the doc's path, the
-group headings to review, and the path of this file
+**Reviewer.** Spawn one fresh `general-purpose` subagent with model `opus` and effort `medium`. A
+reviewer that didn't write the scenarios isn't anchored on the reasoning behind them. The brief
+carries only the doc's path, the group headings to review, and the path of this file
 (`${CLAUDE_PLUGIN_ROOT}/skills/user-scenarios/SKILL.md`) with an instruction to follow its Review
 checklist section. Never add your own view of the scenarios, the session's discussion, or a
 summary of what changed. Spawn a new one for every review; never continue an earlier one.
 
-The plugin's `adversarial-reviewer` in scenario-read mode is not used here: it takes one group per
-spawn, and it has no checks for the doc's format rules or for the specific missing scenarios
-below. Check 2 is the only concern build's scenario read stops a run on. Check 1 is worth
-finding here too: build would implement the simplest reading of those words, and this review lets
-the user pick the reading instead.
+Check 1 matters most here: with no other gate, a clause with two readings is built as its simplest
+reading and only reported afterward, so this review is where the user picks the reading.
 
 **Applying findings.** Never apply a finding yourself. Print one line with the number of findings,
 then take them one scenario at a time as proposals under the workflow rules: explain the problem in
@@ -191,9 +189,9 @@ the id, or a wording-only change. Offer approve, change, reject and park. A find
 goes in Parked with what was decided about it. A ruling that needs no scenario goes in Decided. A
 rejected finding is dropped.
 
-**Concerns from `/mikey:build`.** When invoked with the doc path and a list of concerns to rule on,
-skip the reviewer and take each concern as a finding under Applying findings, then report each
-ruling in one line and return.
+**Concerns from a build report.** When invoked with the doc path and a list of scenario concerns
+taken from a `/mikey:build` final report, skip the reviewer and take each concern as a finding under
+Applying findings, then report each ruling in one line and return.
 
 ### Review checklist
 
@@ -261,3 +259,5 @@ This skill is updated as the user and Claude learn what works.
   edge cases with no real harm, or re-implemented something the project already had. Rule 9 now
   covers every proposal: check what already exists, offer the simplest option first, and skip
   edge-case scenarios that guard no real harm. Check 4 reports only gaps that matter to a person.
+- 2026-11-14: `/mikey:build` dropped its own scenario read and trusts the doc, so the Scenario review
+  is now the only check before code. Its review rounds report a scenario concern but never act on it.

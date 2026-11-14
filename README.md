@@ -20,15 +20,15 @@ claude plugin install git-guardrails@mikey-claude-plugins
 
 ### git-guardrails
 
-Blocks Claude Code from running a specific list of destructive git commands: `git push --force`, `git reset --hard`, `git branch -D`, `git clean -f`, and `git checkout .`. These commands can discard uncommitted or unpushed work with no undo, so this plugin denies them at the `PreToolUse` hook layer before they ever run. If you actually want to run one of these, run it yourself from your terminal — the hook only blocks Claude, not you.
+Blocks Claude Code from running a specific list of destructive git commands: `git push --force`, `git reset --hard`, `git branch -D`, `git clean -f`, and `git checkout .`. These commands can discard uncommitted or unpushed work with no undo, so this plugin denies them at the `PreToolUse` hook layer before they ever run. If you actually want to run one of these, run it yourself from your terminal; the hook only blocks Claude, not you.
 
-**Not a complete safeguard** — it's a narrow regex tripwire on these five commands, not a general defense against Claude (or anyone else) losing work through other git commands, non-git destructive actions, or non-Bash tool calls. See [git-guardrails/README.md](git-guardrails/README.md#limitations) for the full list of what it doesn't cover.
+**Not a complete safeguard**: it's a narrow regex tripwire on these five commands, not a general defense against Claude (or anyone else) losing work through other git commands, non-git destructive actions, or non-Bash tool calls. See [git-guardrails/README.md](git-guardrails/README.md#limitations) for the full list of what it doesn't cover.
 
 ## Skills
 
 ### /mikey:testify
 
-Review and align tests with test philosophy. Identifies code design issues, implementation detail testing, excessive mocking, and negative test coverage gaps — then suggests improvements. Use `--plan` to generate a saved implementation plan without bloating the current context.
+Review and align tests with test philosophy. Identifies code design issues, implementation detail testing, excessive mocking, and negative test coverage gaps, then suggests improvements. Use `--plan` to generate a saved implementation plan without bloating the current context.
 
 Open claude and type `/mikey:testify` to see optional parameters.
 
@@ -60,7 +60,7 @@ See [mikey/skills/comment-review/SKILL.md](mikey/skills/comment-review/SKILL.md)
 
 ### /mikey:build
 
-Implement one approved group of scenarios end to end. The main session coordinates; subagents do the work. If your tree already has changes, such as from a run that stopped, it asks whether to continue from them or stop. A fresh reviewer reads the scenarios before any code is written and stops the run only on a contradiction; a scenario with two or more readings is built as its simplest reading, which stands against later picks and across runs and binds every fixer, and is listed in the final report, next to the readings and product values the implementer and fixers chose. Then `/mikey:tdd` implements, a fixer subagent runs `/mikey:testify` and applies its findings, up to three rounds of a fresh adversarial reviewer and a fresh fixer follow, `/mikey:comment-review` cleans comments, and the chunk is committed (never pushed) once tests and lint pass.
+Implement one approved group of scenarios end to end. The main session coordinates; subagents do the work. If the scenario doc has uncommitted edits, it commits them first as a separate commit. If your tree already has other changes, such as from a run that stopped, it asks whether to continue from them or stop. Build trusts the scenario doc: it reads no scenarios before coding, because the scenario review in `/mikey:user-scenarios` is the pre-code gate. `/mikey:tdd` implements, then up to three review rounds run: a roster of fresh reviewers in parallel (`adversarial-reviewer` and `test-design-reviewer`) writes findings to files outside the project tree, and one `fixer` applies the merged findings. The loop ends when no reviewer reports a HIGH finding. A scenario concern a reviewer raises never stops the run or changes the doc; it is listed in the final report, next to the product values and readings the implementer and fixers chose. `/mikey:comment-review` then cleans comments, and the chunk is committed (never pushed) once tests and lint pass.
 
 Flow order: write and approve scenarios with `/mikey:user-scenarios`, then run `/mikey:build <doc path> "<group heading>"` once per group.
 
@@ -82,7 +82,7 @@ See [mikey/skills/build/SKILL.md](mikey/skills/build/SKILL.md) for more informat
    claude --plugin-dir /path/to/mikey-claude-plugins/mikey
    ```
 
-3. **Iterate** — edit skill/agent/hook files, then reload within the session:
+3. **Iterate**: edit skill/agent/hook files, then reload within the session:
    ```
    /reload-plugins
    ```

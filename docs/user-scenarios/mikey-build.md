@@ -375,7 +375,7 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   Sonnet low subagent invokes it with `--with-design --auto --files`, then applies the findings),
   because an inline skill has no way to return a report without printing it into the main
   session. Testify's own analysis agent therefore inherits that subagent's model.
-- Decided November 12, 2026, after the first Florence run: further skill changes authorized.
+- Decided November 12, 2026, after the first live run: further skill changes authorized.
   `/mikey:tdd` gains `--existing-work` and the tdd-agent an Existing work section (BUILD-021). The
   adversarial reviewer gains a scenario-read mode (BUILD-023, now BUILD-027) and labels each concern
   by kind (BUILD-019, now BUILD-029; BUILD-020). The fixer and the tdd-agent report the product

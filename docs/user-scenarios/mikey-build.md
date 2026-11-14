@@ -1,9 +1,9 @@
 # /mikey:build user scenarios
 
 `/mikey:build` implements one chunk of approved Given/When/Then scenarios on any project: it runs
-`/mikey:tdd`, checks the tests with `/mikey:testify`, puts the result through rounds of adversarial
-review and fixes, cleans the comments with `/mikey:comment-review`, and commits. The main session
-coordinates; subagents do the work.
+`/mikey:tdd`, puts the result through rounds of review by a roster of reviewers and fixes, cleans
+the comments with `/mikey:comment-review`, and commits. The main session coordinates; subagents do
+the work.
 
 Scenarios are only changed, removed, or added with explicit approval. Each scenario carries an id
 (`BUILD-nnn`); a meaningful change to a scenario retires its id and gets a new one, a wording-only
@@ -18,7 +18,8 @@ works from a paraphrase and I ship behavior you never approved.
 
 > **Given** a user-scenarios doc with a `##` group whose scenarios I approved
 > **When** I run `/mikey:build <doc path> "<group heading>"`
-> **Then** the chunk is exactly the scenarios under that heading, quoted verbatim
+> **Then** the chunk is exactly the scenarios under that heading, which every subagent reads from
+>   the doc itself, never from a copy or a paraphrase
 > **And** nothing from any other group is implemented
 
 ### BUILD-002
@@ -27,43 +28,11 @@ works from a paraphrase and I ship behavior you never approved.
 guessed subset, hours of agent work land on the wrong scenarios.
 
 > **Given** a user-scenarios doc
-> **When** I run `/mikey:build` with a heading that isn't a `##` group in that doc
+> **When** I run `/mikey:build` with a heading that doesn't match a `##` group in that doc
+>   exactly, once surrounding whitespace and a leading `## ` are ignored
 > **Then** nothing is implemented
 > **And** I'm shown the group headings the doc does have and told to pick one or write the missing
 >   group with `/mikey:user-scenarios`
-
-### BUILD-027
-
-**Risk:** If a contradiction is found only after the code is written, hours of agent work go into
-a scenario that can't be satisfied before the run stops for my ruling anyway.
-
-> **Given** a chunk selected by BUILD-001
-> **When** the run starts, before any code is written
-> **Then** a fresh reviewer reads the whole scenario doc and no code
-> **And** it judges only the chunk's scenarios, using the other groups and the Decided section
->   as context
-> **And** if a chunk scenario contradicts another scenario or the Decided section, nothing is
->   implemented yet, I'm shown the reviewer's notes verbatim, and BUILD-028 decides what happens
->   next
-> **And** a chunk scenario that can be read more than one way never stops the run (BUILD-031)
-
-### BUILD-028
-
-**Risk:** If every scenario-read stop sends me off to `/mikey:user-scenarios` and back, each
-small ruling costs a full restart, and I stop running build on new groups.
-
-> **Given** the scenario read reported a contradiction in the chunk
-> **When** the run stops before any code is written
-> **Then** I'm asked whether to rule on the contradictions now, stop, or continue anyway
-> **And** if I rule now, `/mikey:user-scenarios` takes the contradictions one at a time, and
->   every scenario change still needs my approval
-> **And** once I've ruled, the scenario read runs again on the changed doc before any code is
->   written
-> **And** if I continue anyway, tdd implements the scenarios as written, with each ambiguity
->   built as its chosen reading, and the concerns stay open in the final report
-> **And** a contradiction I continued past is not raised again as a stop when a later reviewer
->   or fixer reports the same pair of scenarios; a new contradiction still stops
-> **And** if I stop, nothing changes
 
 ### BUILD-021
 
@@ -97,38 +66,29 @@ unattended.
 ### BUILD-025
 
 **Risk:** If the main session writes code itself, its context fills with diffs and test output,
-and later review rounds are judged by a session already anchored on the implementer's reasoning.
+and I get a final report from a session that has lost the start of the chunk.
 
 > **Given** `/mikey:build` is running
 > **When** any source, test or doc file changes
-> **Then** a subagent made the change, except scenario doc edits I approve through
->   `/mikey:user-scenarios` at a scenario-read stop (BUILD-028)
+> **Then** a subagent made the change
 > **And** the main session only coordinates: it reads the project's conventions and git state,
 >   invokes the skills, briefs subagents, reads their reports, runs the final test, lint and
 >   commit commands, and talks to me
 
-### BUILD-005
-
-**Risk:** If test-design problems (I/O mixed with logic, mocked pure functions, missing negative
-tests) reach the adversarial reviewer, its rounds get spent on test hygiene instead of on whether
-the code does what the scenarios say.
-
-> **Given** `/mikey:tdd` has finished the chunk with a green suite
-> **When** the implementing step continues
-> **Then** `/mikey:testify` reviews only the files the chunk touched, with code-design analysis on
-> **And** a fixer applies every finding it reports before any adversarial review begins
-
-### BUILD-006
-
-**Risk:** If a testify fix changes behavior without a test, the chunk leaves the implementing step
-with code no scenario and no test protects.
-
-> **Given** testify reported a finding whose fix changes source code
-> **When** the fixer applies it
-> **Then** the suite is green afterwards
-> **And** any new or moved source logic has a test that fails without it
-
 ## Review rounds
+
+### BUILD-035
+
+**Risk:** If only one reviewer reads each round, test-design problems (I/O mixed with logic,
+mocked pure functions, missing negative tests) reach the commit unchecked, and I merge tests that
+pass while protecting nothing.
+
+> **Given** the implementing step is done
+> **When** a review round starts
+> **Then** every reviewer in the roster runs, fresh and in parallel: today the adversarial
+>   reviewer and the test-design reviewer
+> **And** each returns findings in the same format, ranked HIGH, MEDIUM or LOW
+> **And** one fixer applies the round's merged findings
 
 ### BUILD-007
 
@@ -137,11 +97,15 @@ verdicts, it inherits their blind spots and passes the same bug the implementer 
 
 > **Given** the implementing step is done
 > **When** a review round starts
-> **Then** a fresh reviewer, with no memory of earlier rounds, receives the chunk's scenarios, the
->   current diff, and the project's own conventions (its CLAUDE.md)
-> **And** it returns ranked findings: HIGH for a correctness bug, a scenario not implemented or
->   implemented differently, a scenario with no test that would fail if it broke, or drift from
->   docs and conventions the project says must stay in sync; MEDIUM or LOW for everything else
+> **Then** each roster reviewer is fresh, with no memory of earlier rounds, and reads the whole
+>   scenario doc, judging only the chunk's group with the rest as context, plus the current diff
+>   and the project's own conventions (its CLAUDE.md)
+> **And** the adversarial reviewer returns ranked findings: HIGH for a correctness bug, a scenario
+>   not implemented or implemented differently, a scenario with no test that would fail if it
+>   broke, or drift from docs and conventions the project says must stay in sync; MEDIUM or LOW
+>   for everything else
+> **And** the test-design reviewer ranks with testify's severities: a design violation or a test
+>   of implementation detail is HIGH
 
 ### BUILD-008
 
@@ -150,7 +114,7 @@ can't tell whether the fix worked, and the bug can return unnoticed later.
 
 > **Given** a review round returned findings
 > **When** the fixer runs
-> **Then** a fresh fixer addresses every finding, HIGH or not
+> **Then** a fresh fixer addresses every finding about the code, HIGH or not
 > **And** for a finding about behavior it writes the failing test before the fix
 > **And** the suite is green when it finishes
 
@@ -159,7 +123,7 @@ can't tell whether the fix worked, and the bug can return unnoticed later.
 **Risk:** If every nit forces another full review round, three rounds get spent on wording while
 a real bug found in round three has no round left to be fixed and re-checked.
 
-> **Given** a review round's findings have all been fixed
+> **Given** the fixer has finished a review round's findings
 > **When** that round reported no HIGH finding
 > **Then** the review loop ends
 > **And** the flow moves on to cleaning comments
@@ -173,56 +137,27 @@ chunk is either burning tokens on a problem the agents can't solve or landing co
 wrong.
 
 > **Given** three review rounds have run
-> **When** the third round still reports a HIGH finding
+> **When** the third round reports any HIGH finding, new or carried over
 > **Then** nothing is committed
 > **And** I'm shown the open HIGH findings and what each round tried, and the flow stops until I
 >   say what to do
 > **And** the third round's findings are left unfixed, exactly as the reviewer wrote them
 
-### BUILD-029
+### BUILD-036
 
-**Risk:** If a reviewer who notices that a scenario contradicts another either fixes the scenario
-or stays quiet, I end up with an unapproved spec change or a commit that faithfully implements a
-mistake.
+**Risk:** If a review round's doubt about a scenario stops the run, I'm interrupted to rule on
+wording I'd have accepted either way, and I stop running build unattended.
 
-> **Given** a review round reports that a scenario in the chunk's own group contradicts another
->   scenario or the Decided section
+> **Given** a review round reports a concern about a scenario rather than the code: a
+>   contradiction with another scenario or the Decided section, wording that can be read more
+>   than one way, or a gap no approved scenario covers
 > **When** the chunk otherwise completes
-> **Then** the scenario doc is unchanged
-> **And** nothing is committed
-> **And** I'm shown the reviewer's note and the flow stops until I rule on it
-> **And** the same kind of concern about another group goes in the final report only
-> **And** a scenario the reviewer finds ambiguous never stops the flow (BUILD-031)
-
-### BUILD-031
-
-**Risk:** If an ambiguous scenario stops every run, I'm interrupted for wording I'd have accepted
-either way; if it's implemented silently, a reading I didn't choose ships as if I had.
-
-> **Given** the scenario read or a review round finds a chunk scenario that can be read more than
->   one way
-> **When** the run continues
-> **Then** the reviewer names each reading and picks the simplest
-> **And** tdd (or the fixer, in a review round) implements that reading, unless a reading for that
->   scenario was already built, in which case the built one stands and the new pick is only
->   reported
-> **And** a reading found by the round that stops the run is reported, not built
-> **And** the final report lists the scenario, the readings, the reading built, who built it, and
->   any later differing pick, next to the product values of BUILD-032
-> **And** the scenario doc is unchanged
-
-### BUILD-020
-
-**Risk:** If a suggestion for a missing scenario stops the run, a chunk whose approved scenarios
-all pass sits uncommitted until I write scenarios for a different problem.
-
-> **Given** a review round suggests a scenario the doc is missing, or a gap no approved scenario
->   covers
-> **When** the chunk otherwise completes
-> **Then** the suggestion doesn't stop the flow or the commit
-> **And** no fixer acts on it
-> **And** the scenario doc is unchanged
-> **And** the final report lists the suggestion for me to take to `/mikey:user-scenarios`
+> **Then** the concern doesn't stop the flow or the commit
+> **And** no fixer acts on it, and the scenario doc is unchanged
+> **And** a reading tdd or a fixer already built and reported (BUILD-032) stands: a reviewer who
+>   prefers another reading reports it as a concern, never as a finding to fix
+> **And** the final report lists each concern, with the readings the reviewer saw where there are
+>   two, for me to take to `/mikey:user-scenarios`
 
 ### BUILD-032
 
@@ -230,14 +165,14 @@ all pass sits uncommitted until I write scenarios for a different problem.
 the value ships as if I had chosen it.
 
 > **Given** tdd or a fixer had to choose a product value that no scenario or Decided note sets,
->   such as a time limit, a default or a message, or had to pick an interpretation of unclear
->   wording that no reviewer had already resolved
+>   such as a time limit, a default or a message, or had to pick one reading of wording that can
+>   be read more than one way
 > **When** the chunk finishes, committed or stopped
-> **Then** the final report lists each such value or interpretation with its file and line and
->   the reason it was chosen
+> **Then** the final report lists each such value or reading with its file and line and the
+>   reason it was chosen
 > **And** the value never stops the flow on its own
 
-### BUILD-012
+### BUILD-037
 
 **Risk:** If every round's full findings land in the main session, its context fills with review
 text and the final decisions get made by a session that has lost the start of the chunk.
@@ -245,8 +180,11 @@ text and the final decisions get made by a session that has lost the start of th
 > **Given** review rounds are running
 > **When** a round finishes
 > **Then** I see one line: the round number and the count of findings by severity
+> **And** the full findings travel from the reviewers to the round's fixer and into the final
+>   report without the main session reading them in full; it reads only counts and each
+>   finding's outcome
 > **And** the full findings of every round, each with its outcome, appear only in the final report
->   or at a stop (BUILD-010, BUILD-029)
+>   or at a stop (BUILD-010)
 
 ## Cleaning comments
 
@@ -279,7 +217,7 @@ instead of checked, the next maintainer reads a hedge as a verified fact.
 **Risk:** If the chunk is committed on a red suite or a failing lint, or with a message that
 narrates the diff, the next reader gets a broken commit with no record of why the change was made.
 
-> **Given** comments are clean and no stop condition (BUILD-010, BUILD-029) applies
+> **Given** comments are clean and no stop condition (BUILD-010) applies
 > **When** the chunk is committed
 > **Then** the project's test suite and its lint or static check both pass immediately before the
 >   commit
@@ -298,15 +236,16 @@ chunk; if the absence is silent, I assume a check ran that didn't.
 > **Then** only the test suite gates the commit
 > **And** the final report says no lint step ran
 
-### BUILD-026
+### BUILD-038
 
-**Risk:** If the scenario doc is never committed, approved scenario changes live only as
-uncommitted edits, and a stopped run or a stash can lose a day of rulings.
+**Risk:** If the scenario doc is never committed, approved scenarios live only as uncommitted
+edits, and a stopped run or a stash can lose a day of scenario work.
 
-> **Given** the scenario doc has uncommitted changes, from an earlier session or from rulings in
->   this run
-> **When** the scenario read finds nothing that stops the run, just before tdd starts
+> **Given** the scenario doc has uncommitted changes from an earlier session
+> **When** tdd is about to start
 > **Then** build commits the scenario doc on its own, with nothing else in that commit
+> **And** that commit follows BUILD-015's message rules but isn't gated by tests or lint, since no
+>   code changed
 > **And** the chunk's code is committed separately at the end
 
 ## Finishing
@@ -412,8 +351,51 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
   contradiction involving any chunk scenario is a concern about the chunk, whichever group the
   other scenario sits in. Review rounds after this one were waived for the change itself: the
   round-3 fixes were committed without a fourth review, by decision.
+- The November 14 entries below supersede the earlier entries where those describe the scenario
+  read, readings, concern kinds, or testify running inside build.
+- Decided November 14, 2026, after a simplicity review of the plugin: `/mikey:build` trusts the
+  scenario doc. The pre-code gate is the scenario review in `/mikey:user-scenarios` (its step
+  10); build reads no scenarios before tdd. BUILD-027 and BUILD-028 are deleted, and the readings
+  file, the concern kinds, the continued-past list and the fixer-side reading rules go with them.
+  Reasons: verifying intent before code belongs to the scenarios skill and finding drift after
+  code to the review rounds; the one live run found every scenario concern from the words alone;
+  and once the first built reading stands, no case was left in which a fixer could build a
+  reading.
+- Decided November 14, 2026: review rounds run a roster of reviewers (BUILD-035): the adversarial
+  reviewer, Opus at medium effort, and a new `test-design-reviewer` agent, Sonnet at medium
+  effort, built from testify's analysis prompt and the shared references. A test-design HIGH has
+  equal standing; the loop ends only when no reviewer reports HIGH. BUILD-005 and BUILD-006 are
+  deleted: a fixer subagent cannot spawn testify's analysis agent, and BUILD-008 already requires
+  the failing test first. `/mikey:testify` is unchanged for standalone use and no longer runs
+  inside build.
+- Decided November 14, 2026: a scenario concern a review round raises is report-only (BUILD-033,
+  now BUILD-036, replaces BUILD-020, BUILD-029 and BUILD-031). A contradiction found after the
+  code exists still gets its local commit, flagged in the report; I unwind it by hand if the
+  reviewer was right.
+- Decided November 14, 2026: subagents are briefed by reference. Every spawn passes the doc path
+  and the group heading and the agent reads the group itself; the main session copies no scenario
+  text (BUILD-001). The tdd-agent's VALIDATE step, which named a `--validate` flag that no longer
+  exists, is removed.
+- Decided November 14, 2026, after the scenario review of these changes: BUILD-033, BUILD-012 and
+  BUILD-026 are retired and replaced by BUILD-036 (a built reading stands against a reviewer's
+  preference), BUILD-037 (findings bypass the main session's context) and BUILD-038 (the doc-only
+  commit follows the message rules but isn't gated by tests or lint).
+- Decided November 14, 2026: a lint or static check that fails immediately before the commit is a
+  fourth mid-flow stop, like a red suite: nothing is committed, I'm shown the output tail, and the
+  flow stops.
 
 ## Parked
 
 - The tdd-agent as written is unproven ("just a hunch", November 12, 2026). Review its protocol
   against this flow while building; no specific failure has been observed.
+- From the November 14 scenario review, each with the reviewer's point:
+  - BUILD-021 holds two branches of my choice (stop, continue) inside And clauses; the one Given,
+    one When, one Then rule would split it.
+  - BUILD-021 doesn't say how a test counts as covering a scenario (tagged with the id, or judged
+    by the agent).
+  - BUILD-021 can carry a different group's stopped work into this chunk's commit, against
+    BUILD-001's "nothing from any other group is implemented".
+  - BUILD-003's "one line per step of the flow, nothing more" doesn't define a step or say
+    whether it covers the whole run.
+  - BUILD-010 doesn't say what I can choose at the stop (another round, commit anyway, abandon)
+    or what each choice does; rerunning through BUILD-021 may be the answer.

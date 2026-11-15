@@ -24,7 +24,18 @@ A scenario may carry a **Risk** paragraph: the harm that follows if its Then fai
 
 ## Existing work
 
-The context may carry an **Existing work** section: the tree already holds work in progress for these scenarios, for example from a run that stopped, so some of them may already have passing covering tests. For each scenario, look for a test that already covers it. If one exists, run it. When it passes and would fail if the scenario's Then, or its Risk, came true, the scenario is already implemented: leave the test and the code alone, and list it in your report as already implemented with its covering test. A passing covering test fixes how the scenario was read, across runs. Run the full cycle below for every other scenario, implementing only what's missing. Don't touch work for scenarios outside the chunk.
+The context may carry an **Existing work** section: the tree already holds work in progress for these scenarios, for example from a run that stopped, so some of them may already have passing covering tests. For each scenario, look for a test that already covers it: its name begins with the scenario's id. If one exists, run it. When it passes and would fail if the scenario's Then, or its Risk, came true, the scenario is already implemented: leave the test and the code alone, and list it in your report as already implemented with its covering test. A passing covering test fixes how the scenario was read, across runs. Run the full cycle below for every other scenario, implementing only what's missing. Don't touch work for scenarios outside the chunk.
+
+## Tests that name a retired id
+
+A test's name is the link between a scenario and the test that protects it (see Test Naming Convention). A meaningful change to a scenario retires its id, and the doc keeps no record of the retired scenario, so a test that still begins with the old id points at a scenario that no longer exists. Left alone, it misleads the next reader about what is covered, and it can enforce behavior the owner has since changed, which blocks the new scenario in GREEN.
+
+Before the first scenario, search the test files for names that begin with an id that has this doc's prefix and that no `###` heading in the doc defines. Leave ids with another prefix alone: they belong to another doc. For each one, find what replaced the scenario with `git log -p -S '### <old id>' -- <doc path>`, then:
+
+- If a current scenario covers the behavior the test checks, rename the test to that scenario's id. Change its assertions only where the new Then differs.
+- If no current scenario covers it, delete the test.
+
+A test that begins with a retired id and fails once you implement a current scenario is stale by definition: never bend the implementation to it, and handle it the same way. Renaming or deleting a test is a call a person must confirm, so report each one as an `Owner decision:` line with the old id, the test's `file::test name`, what you did and why.
 
 ## Execution Protocol
 
@@ -80,6 +91,10 @@ Follow RITEway principles. Each test should answer the 5 Questions structurally.
 - Example: Given "an empty cart" / When "adding an item" / Then "cart contains 1 item" becomes `assert({ given: 'an empty cart', should: 'contain 1 item after adding', actual: cart.count(), expected: 1 })`
 
 When RITEway is not available, use descriptive test names that mirror the Given/When/Then language from the spec.
+
+Whatever the library, a test's name begins with the id of the scenario it covers, as the first thing in the test call's name string: `<id>: ` for one scenario, `<id>, <id>: ` in doc order for several. Where the framework doesn't allow free text in a name, the id comes first in the form the framework allows. A test that covers no scenario carries no id.
+
+The owner reads coverage through these names: a person reading a test sees which scenario it protects, a failing run names the scenario that broke, a name filter such as `--only <id>` runs one scenario's tests, and a script can list the scenarios no test names. A test that omits its id, or carries the wrong one, makes that view lie, and the owner can't see the gap.
 
 ## Quick Rules
 

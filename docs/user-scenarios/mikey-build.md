@@ -383,6 +383,16 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
 - Decided November 14, 2026: a lint or static check that fails immediately before the commit is a
   fourth mid-flow stop, like a red suite: nothing is committed, I'm shown the output tail, and the
   flow stops.
+- Decided November 15, 2026: a test covers a scenario when its name begins with the scenario's id
+  (`<id>: `, or `<id>, <id>: ` in doc order for several), and a test that covers no scenario
+  carries no id. The owner reads coverage from those names: which scenario a test protects, which
+  scenario a failure broke, and which scenarios no test names. This is how BUILD-021 finds an
+  existing covering test and how the scenario-to-test list is checked (ADR-012).
+- Decided November 15, 2026: a test that begins with an id its doc no longer defines is a retired
+  id's leftover. At the start of tdd, the tdd-agent renames it to the scenario that replaced the
+  retired one, or deletes it when no current scenario covers its behavior, and reports each as an
+  `Owner decision:` line. Ids with another doc's prefix are left alone. A stale test never makes
+  the implementation bend (ADR-012).
 
 ## Parked
 

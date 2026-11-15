@@ -401,8 +401,6 @@ re-review the whole diff by hand or trust a commit whose known gaps nobody wrote
 - From the November 14 scenario review, each with the reviewer's point:
   - BUILD-021 holds two branches of my choice (stop, continue) inside And clauses; the one Given,
     one When, one Then rule would split it.
-  - BUILD-021 doesn't say how a test counts as covering a scenario (tagged with the id, or judged
-    by the agent).
   - BUILD-021 can carry a different group's stopped work into this chunk's commit, against
     BUILD-001's "nothing from any other group is implemented".
   - BUILD-003's "one line per step of the flow, nothing more" doesn't define a step or say

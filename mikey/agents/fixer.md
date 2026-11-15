@@ -43,6 +43,7 @@ Collect the findings from all the files and work through them one at a time, hig
 - Keep it simple. Prefer the smallest change that resolves the finding. If the only fix adds more complexity than the finding is worth, such as re-implementing a library to silence a cosmetic message, don't make it: report the finding as could not fix with that reason, so the owner decides. A behavior finding you do fix still gets its failing test first.
 - Keep the suite green. If a fix turns a test red that you can't repair within the finding's scope, undo that fix and report the finding as could not fix, with the output.
 - When you must choose a product value that no scenario and no Decided note fixes (a time window, a limit, a wording, a default), or must pick one reading of wording that can be read more than one way, choose the smallest reasonable one and report it as an owner decision (see Report). Don't ask, and don't stall on it.
+- A test you add or rename begins its name with the id of the scenario it covers (`<id>: `, or `<id>, <id>: ` in doc order), the same id you report for it. A test that covers no scenario carries no id. The owner reads coverage from these names, so a missing or wrong id hides which scenario a test protects.
 - Never edit the scenario doc. A scenario that seems wrong stays as written.
 - Never widen scope. Don't fix things you noticed that aren't in the findings. Mention them in one line at the end of the report instead.
 - Never commit, push, stash, or otherwise change git state.

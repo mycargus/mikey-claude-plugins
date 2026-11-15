@@ -72,10 +72,14 @@ Worked example this skill is distilled from:
 Every scenario has an id of the form `PREFIX-nnn`: a short uppercase topical prefix chosen with
 the user (one word naming the tool, feature or area the scenarios cover), then a three-digit
 number that counts up through the doc. The id is the scenario's `###` heading, and the test that
-covers the scenario can carry the same id.
+covers the scenario begins its name with the same id. The owner reads coverage from those
+names: a test shows the scenario it protects, a failure names the scenario that broke, and a script
+can list the scenarios no test covers.
 
 - A **meaningful change** (different Given, When, or Then, or a different intent) retires the id.
-  The new scenario gets the next unused number, and the old scenario is deleted.
+  The new scenario gets the next unused number, and the old scenario is deleted. Tests named with
+  the retired id stay until the next `/mikey:build` of the doc renames them to the replacement or
+  deletes them, so a test name never points at a scenario the doc no longer has.
 - A **wording-only change** keeps the id.
 - An id is never reused, even after its scenario is deleted. Gaps in the numbering are fine.
 - Use one prefix per doc. A split doc keeps one prefix per file.
